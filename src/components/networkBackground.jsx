@@ -32,6 +32,7 @@ const NetworkBackground = () => {
           y: Math.random() * height,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
+          baseSpeed: speed,
           radius: Math.random() * 1.4 + 1,
           phase: Math.random() * Math.PI * 2,
           color: index % 4 === 0 ? [251, 113, 133] : index % 3 === 0 ? [45, 212, 191] : [56, 189, 248],
@@ -62,14 +63,17 @@ const NetworkBackground = () => {
         if (!reduceMotion) {
           const pointerDistance = Math.hypot(node.x - pointer.x, node.y - pointer.y);
           if (pointerDistance < 130 && pointerDistance > 0) {
-            node.vx += ((node.x - pointer.x) / pointerDistance) * 0.001;
-            node.vy += ((node.y - pointer.y) / pointerDistance) * 0.001;
+            node.vx += ((node.x - pointer.x) / pointerDistance) * 0.0003;
+            node.vy += ((node.y - pointer.y) / pointerDistance) * 0.0003;
           }
 
+          // Damp speed back toward this node's resting pace so a cursor nudge
+          // fades out naturally instead of leaving the node stuck at top speed.
           const currentSpeed = Math.hypot(node.vx, node.vy);
-          if (currentSpeed > 0.13) {
-            node.vx = (node.vx / currentSpeed) * 0.13;
-            node.vy = (node.vy / currentSpeed) * 0.13;
+          if (currentSpeed > node.baseSpeed) {
+            const dampedSpeed = currentSpeed + (node.baseSpeed - currentSpeed) * 0.04;
+            node.vx = (node.vx / currentSpeed) * dampedSpeed;
+            node.vy = (node.vy / currentSpeed) * dampedSpeed;
           }
 
           node.x += node.vx;

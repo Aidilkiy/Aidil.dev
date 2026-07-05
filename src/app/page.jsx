@@ -14,7 +14,7 @@ const highlights = ["Software engineering", "Application support", "Cloud & DevO
 const stats = [
   { value: "AWS", label: "Cloud certified" },
   { value: "2", label: "Professional roles" },
-  { value: "2", label: "Featured projects" },
+  { value: "3", label: "Featured projects" },
 ];
 
 const codeLines = [

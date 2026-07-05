@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { LuArrowUpRight, LuGithub, LuLinkedin, LuMail, LuPhone } from "react-icons/lu";
+import { LuArrowUpRight, LuGithub, LuLinkedin, LuMail } from "react-icons/lu";
 import ResumeButton from "@/components/resumeButton";
 
 const contactLinks = [
@@ -11,13 +11,6 @@ const contactLinks = [
     value: "aidilkiy21@gmail.com",
     href: "mailto:aidilkiy21@gmail.com",
     icon: LuMail,
-    group: "direct",
-  },
-  {
-    label: "Phone",
-    value: "+60 11-3196 4189",
-    href: "tel:+601131964189",
-    icon: LuPhone,
     group: "direct",
   },
   {
@@ -111,8 +104,8 @@ const ContactPage = () => {
                           >
                             <Link
                               href={item.href}
-                              target={item.label === "Email" || item.label === "Phone" ? undefined : "_blank"}
-                              rel={item.label === "Email" || item.label === "Phone" ? undefined : "noreferrer"}
+                              target={item.label === "Email" ? undefined : "_blank"}
+                              rel={item.label === "Email" ? undefined : "noreferrer"}
                               className="group grid min-h-[58px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-white/12 bg-white/[0.065] px-3 py-2 shadow-sm transition-all duration-300 hover:translate-x-1 hover:border-cyan-300/60 hover:bg-white/[0.12] sm:gap-4 sm:px-4"
                             >
                               <span className="flex h-10 w-10 items-center justify-center rounded-md bg-black text-white transition-colors group-hover:bg-cyan-300 group-hover:text-[#071A1F]">
