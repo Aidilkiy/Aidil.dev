@@ -870,7 +870,7 @@ const WorkPage = ({ embedded = false }) => {
                                             Ask questions about any GitHub repo, answered from the real code
                                         </p>
                                         <p className="mt-5 max-w-3xl text-lg leading-8 text-white/68">
-                                            A RAG (Retrieval-Augmented Generation) tool that indexes a public repo's source, retrieves the relevant code for a question, and answers using only that retrieved context, citing the exact file and lines used.
+                                            A RAG (Retrieval-Augmented Generation) tool that indexes a public repo&apos;s source, retrieves the relevant code for a question, and answers using only that retrieved context, citing the exact file and lines used.
                                         </p>
                                         <div className="mt-7 flex flex-wrap gap-2">
                                             {repoChatTools.map((tool) => (
