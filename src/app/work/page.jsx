@@ -272,6 +272,24 @@ const repoChatTranscript = {
     ],
 }
 
+const repoChatEngineeringChallenge = [
+    {
+        value: "429",
+        label: "Found",
+        text: "Tested against a real 38MB public repo (1,000+ code chunks) and immediately hit Gemini's free-tier rate limit — the app crashed outright with no retry logic.",
+    },
+    {
+        value: "2x",
+        label: "Root cause",
+        text: "Diagnosed two real bottlenecks: no backoff on rate-limited requests, and GitHub file downloads running one at a time instead of in parallel.",
+    },
+    {
+        value: "150",
+        label: "Fixed",
+        text: "Added exponential backoff, parallelized downloads, and a hard chunk cap so oversized repos fail fast with a clear message instead of hanging for up to an hour.",
+    },
+]
+
 const FeaturePill = ({ children }) => (
     <span className="rounded-full bg-white/10 px-3 py-2 text-sm font-bold text-white/80 ring-1 ring-white/10">
         {children}
@@ -974,6 +992,35 @@ const WorkPage = ({ embedded = false }) => {
                                         </div>
                                     </div>
                                 </motion.div>
+                            </section>
+
+                            <section className="mt-8 rounded-lg border border-white/12 bg-[#061418]/88 p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)] md:p-8">
+                                <p className="font-mono text-xs font-bold uppercase tracking-[0.32em] text-violet-300">Engineering Challenge</p>
+                                <h2 className="mt-4 font-serif text-2xl leading-tight md:text-4xl">What happens when a repo is bigger than expected?</h2>
+                                <p className="mt-4 max-w-3xl leading-8 text-white/68">
+                                    Real repos aren&apos;t all the size of a class project. Stress-testing RepoChat against a much larger public repo surfaced two real bugs that a small demo repo never would have — here&apos;s the actual debugging trail.
+                                </p>
+
+                                <div className="mt-7 grid gap-4 md:grid-cols-3">
+                                    {repoChatEngineeringChallenge.map((item, index) => (
+                                        <motion.div
+                                            className="relative overflow-hidden rounded-lg border border-white/12 bg-black/35 p-5"
+                                            initial={{ opacity: 0, y: 24 }}
+                                            whileInView={{ opacity: 1, y: 0 }}
+                                            viewport={{ once: true, amount: 0.35 }}
+                                            transition={{ delay: index * 0.08, duration: 0.45 }}
+                                            key={item.label}
+                                        >
+                                            <p className="font-serif text-3xl text-violet-200">{item.value}</p>
+                                            <h3 className="mt-2 text-base font-black">{item.label}</h3>
+                                            <p className="mt-3 text-sm leading-7 text-white/62">{item.text}</p>
+                                        </motion.div>
+                                    ))}
+                                </div>
+
+                                <p className="mt-6 border-t border-white/10 pt-5 text-sm leading-7 text-white/55">
+                                    Verified live: the same oversized repo now fails in seconds with an actionable message instead of hanging indefinitely, while normal-sized repos still index and answer correctly (regression-tested against the MIITGuide repo above).
+                                </p>
                             </section>
                         </motion.div>
                     ) : null}
