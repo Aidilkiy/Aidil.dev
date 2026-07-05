@@ -2,7 +2,7 @@
 
 Personal portfolio site for Aidil Rozaidi, a software engineering graduate working across development, application support, and cloud/DevOps.
 
-Live at: _add your deployed URL here once published_
+Live at: [aidildev.vercel.app](https://aidildev.vercel.app)
 
 ## Sections
 
