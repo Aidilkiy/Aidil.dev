@@ -20,8 +20,14 @@ const NetworkBackground = () => {
 
     const createNodes = () => {
       const nodeCount = width < 768 ? 18 : Math.min(44, Math.max(30, Math.floor((width * height) / 36000)));
-      const minimumSpeed = width < 768 ? 0.028 : 0.038;
-      const speedRange = width < 768 ? 0.018 : 0.024;
+
+      // Speed is a fixed pixel amount, so it must scale with screen width or it
+      // visually "crosses" a small phone screen much faster than a wide desktop
+      // one at the same absolute speed. 1280px is the desktop width the base
+      // speed values were tuned against.
+      const speedScale = Math.min(1.5, Math.max(0.3, width / 1280));
+      const minimumSpeed = 0.038 * speedScale;
+      const speedRange = 0.024 * speedScale;
 
       nodes = Array.from({ length: nodeCount }, (_, index) => {
         const angle = Math.random() * Math.PI * 2;
