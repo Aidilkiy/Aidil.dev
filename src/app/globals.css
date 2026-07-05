@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+  background: #071A1F;
+  overflow-y: auto;
+  scrollbar-color: rgba(45, 212, 191, 0.72) rgba(7, 26, 31, 0.96);
+  scrollbar-width: thin;
+}
+
+body {
+  margin: 0;
+  background: #071A1F;
+  color: white;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+html::-webkit-scrollbar {
+  width: 8px;
+}
+
+html::-webkit-scrollbar-track {
+  background: #071A1F;
+}
+
+html::-webkit-scrollbar-thumb {
+  border: 2px solid #071A1F;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(45, 212, 191, 0.95), rgba(20, 184, 166, 0.42));
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(94, 234, 212, 1), rgba(45, 212, 191, 0.62));
+}
+
+body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+}
+
+@media (pointer: fine) and (hover: hover) {
+  html,
+  body,
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  [role="button"] {
+    cursor: none;
+  }
+}
+
+@keyframes introOverlayOut {
+  0%, 86% {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.intro-loader-overlay {
+  animation: introOverlayOut 5.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
