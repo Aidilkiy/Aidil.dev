@@ -30,7 +30,7 @@ const ResumeButton = ({ className = "" }) => {
 
                     window.setTimeout(() => {
                         const link = document.createElement("a")
-                        link.href = "/resume.pdf"
+                        link.href = "/Aidil-Rozaidi-CV.pdf"
                         link.download = "Aidil-Rozaidi-CV.pdf"
                         document.body.appendChild(link)
                         link.click()

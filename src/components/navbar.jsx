@@ -158,7 +158,7 @@ const Navbar = () => {
         {/* RESPONSIVE MENU*/}
         <div className ="flex items-center gap-3 md:absolute md:right-0">
         <Link
-            href="/resume.pdf"
+            href="/Aidil-Rozaidi-CV.pdf"
             target="_blank"
             rel="noreferrer"
             className="hidden h-10 items-center rounded-[8px] border border-[#17343A] bg-transparent px-5 font-mono text-[13px] font-black tracking-[0.02em] text-white/88 transition-colors hover:border-[#2DD4BF]/70 hover:text-white md:inline-flex"
