@@ -1045,7 +1045,7 @@ const WorkPage = ({ embedded = false }) => {
                                 <p className="font-mono text-xs font-bold uppercase tracking-[0.32em] text-violet-300">From Monolith to Microservices</p>
                                 <h2 className="mt-4 font-serif text-2xl leading-tight md:text-4xl">Splitting the app, and a CDN surprise along the way.</h2>
                                 <p className="mt-4 max-w-3xl leading-8 text-white/68">
-                                    Wanted real hands-on practice with Kubernetes, so I split RepoChat's single Express server into two independent services first — the kind of refactor that also surfaces bugs a monolith hides.
+                                    Wanted real hands-on practice with Kubernetes, so I split RepoChat&apos;s single Express server into two independent services first — the kind of refactor that also surfaces bugs a monolith hides.
                                 </p>
 
                                 <div className="mt-7 grid gap-4 md:grid-cols-3">
