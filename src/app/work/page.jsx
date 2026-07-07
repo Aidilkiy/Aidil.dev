@@ -306,6 +306,11 @@ const repoChatArchitectureEvolution = [
         label: "Fixed",
         text: "Switched file fetching to GitHub's authenticated Contents API, sharing the same large, predictable rate limit as the rest of the app instead of a separate, unpredictable CDN throttle.",
     },
+    {
+        value: "1",
+        label: "Reverted",
+        text: "Render's private networking between the split services proved unreliable in production, and a local Kubernetes setup separately hit an unrelated Docker environment issue. Rolled back to the single-service version rather than leave production broken chasing it — the split's code and lessons stay in git history to revisit later.",
+    },
 ]
 
 const FeaturePill = ({ children }) => (
@@ -1043,12 +1048,12 @@ const WorkPage = ({ embedded = false }) => {
 
                             <section className="mt-8 rounded-lg border border-white/12 bg-[#061418]/88 p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)] md:p-8">
                                 <p className="font-mono text-xs font-bold uppercase tracking-[0.32em] text-violet-300">From Monolith to Microservices</p>
-                                <h2 className="mt-4 font-serif text-2xl leading-tight md:text-4xl">Splitting the app, and a CDN surprise along the way.</h2>
+                                <h2 className="mt-4 font-serif text-2xl leading-tight md:text-4xl">Splitting the app, hitting a CDN surprise, then rolling it back.</h2>
                                 <p className="mt-4 max-w-3xl leading-8 text-white/68">
-                                    Wanted real hands-on practice with Kubernetes, so I split RepoChat&apos;s single Express server into two independent services first — the kind of refactor that also surfaces bugs a monolith hides.
+                                    Wanted real hands-on practice with Kubernetes, so I split RepoChat&apos;s single Express server into two independent services first — the kind of refactor that also surfaces bugs a monolith hides. It worked locally end-to-end, but production networking issues on the free hosting tier weren&apos;t worth chasing indefinitely, so I rolled it back to keep the live site stable.
                                 </p>
 
-                                <div className="mt-7 grid gap-4 md:grid-cols-3">
+                                <div className="mt-7 grid gap-4 md:grid-cols-2">
                                     {repoChatArchitectureEvolution.map((item, index) => (
                                         <motion.div
                                             className="relative overflow-hidden rounded-lg border border-white/12 bg-black/35 p-5"
@@ -1066,7 +1071,7 @@ const WorkPage = ({ embedded = false }) => {
                                 </div>
 
                                 <p className="mt-6 border-t border-white/10 pt-5 text-sm leading-7 text-white/55">
-                                    Verified end-to-end after the fix: indexing a real repo through the split services correctly returned the exact same file/chunk counts as before, and a real question got a correct, cited answer through the new architecture.
+                                    Verified locally end-to-end before the revert: indexing a real repo through the split services returned the exact same file/chunk counts as the monolith, and a real question got a correct, cited answer through the new architecture — the split worked functionally, the revert was purely about production hosting reliability. RepoChat runs as the single-service version in production today.
                                 </p>
                             </section>
                         </motion.div>
