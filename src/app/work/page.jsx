@@ -233,7 +233,7 @@ const repoChatCaseStudyBlocks = [
     {
         label: "My Approach",
         value:
-            "I built a RAG (Retrieval-Augmented Generation) pipeline: pull a public repo's source via the GitHub API, split it into chunks, embed each chunk with Gemini, and store the vectors in SQLite for fast similarity search.",
+            "I built a RAG (Retrieval-Augmented Generation) pipeline: pull a public repo's source via the GitHub API, split it into chunks, embed each chunk with Gemini, and store the vectors in SQLite for fast similarity search. Later split into independent ingest and query services as a step toward a proper microservices architecture.",
     },
     {
         label: "Outcome",
@@ -287,6 +287,24 @@ const repoChatEngineeringChallenge = [
         value: "150",
         label: "Fixed",
         text: "Added exponential backoff, parallelized downloads, and a hard chunk cap so oversized repos fail fast with a clear message instead of hanging for up to an hour.",
+    },
+]
+
+const repoChatArchitectureEvolution = [
+    {
+        value: "2",
+        label: "Split",
+        text: "Broke the single Express app into independent ingest-service and query-service processes, each with its own Dockerfile and health check, as a step toward running this on Kubernetes.",
+    },
+    {
+        value: "CDN",
+        label: "Found",
+        text: "Repeated stress-testing hit a long, unpredictable rate-limit cooldown on raw.githubusercontent.com's CDN. A plain curl request with zero concurrency still failed, confirming it wasn't a code bug.",
+    },
+    {
+        value: "API",
+        label: "Fixed",
+        text: "Switched file fetching to GitHub's authenticated Contents API, sharing the same large, predictable rate limit as the rest of the app instead of a separate, unpredictable CDN throttle.",
     },
 ]
 
@@ -1020,6 +1038,35 @@ const WorkPage = ({ embedded = false }) => {
 
                                 <p className="mt-6 border-t border-white/10 pt-5 text-sm leading-7 text-white/55">
                                     Verified live: the same oversized repo now fails in seconds with an actionable message instead of hanging indefinitely, while normal-sized repos still index and answer correctly (regression-tested against the MIITGuide repo above).
+                                </p>
+                            </section>
+
+                            <section className="mt-8 rounded-lg border border-white/12 bg-[#061418]/88 p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)] md:p-8">
+                                <p className="font-mono text-xs font-bold uppercase tracking-[0.32em] text-violet-300">From Monolith to Microservices</p>
+                                <h2 className="mt-4 font-serif text-2xl leading-tight md:text-4xl">Splitting the app, and a CDN surprise along the way.</h2>
+                                <p className="mt-4 max-w-3xl leading-8 text-white/68">
+                                    Wanted real hands-on practice with Kubernetes, so I split RepoChat's single Express server into two independent services first — the kind of refactor that also surfaces bugs a monolith hides.
+                                </p>
+
+                                <div className="mt-7 grid gap-4 md:grid-cols-3">
+                                    {repoChatArchitectureEvolution.map((item, index) => (
+                                        <motion.div
+                                            className="relative overflow-hidden rounded-lg border border-white/12 bg-black/35 p-5"
+                                            initial={{ opacity: 0, y: 24 }}
+                                            whileInView={{ opacity: 1, y: 0 }}
+                                            viewport={{ once: true, amount: 0.35 }}
+                                            transition={{ delay: index * 0.08, duration: 0.45 }}
+                                            key={item.label}
+                                        >
+                                            <p className="font-serif text-3xl text-violet-200">{item.value}</p>
+                                            <h3 className="mt-2 text-base font-black">{item.label}</h3>
+                                            <p className="mt-3 text-sm leading-7 text-white/62">{item.text}</p>
+                                        </motion.div>
+                                    ))}
+                                </div>
+
+                                <p className="mt-6 border-t border-white/10 pt-5 text-sm leading-7 text-white/55">
+                                    Verified end-to-end after the fix: indexing a real repo through the split services correctly returned the exact same file/chunk counts as before, and a real question got a correct, cited answer through the new architecture.
                                 </p>
                             </section>
                         </motion.div>
