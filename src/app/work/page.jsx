@@ -939,6 +939,14 @@ const WorkPage = ({ embedded = false }) => {
                                 </div>
                             </section>
 
+                            <section className="mt-8 overflow-hidden rounded-lg border border-white/12 bg-black shadow-[0_24px_70px_rgba(0,0,0,0.2)]">
+                                <img
+                                    src="/work/repochat-demo.gif"
+                                    alt="RepoChat demo: indexing a GitHub repo, then asking a question and getting an answer with expandable file and line citations"
+                                    className="w-full"
+                                />
+                            </section>
+
                             <section className="mt-8 grid gap-4 md:grid-cols-3">
                                 {repoChatHighlights.map((item, index) => (
                                     <motion.article
