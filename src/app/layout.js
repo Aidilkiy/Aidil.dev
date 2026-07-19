@@ -19,14 +19,14 @@ export const metadata = {
     description,
     url: siteUrl,
     siteName: "Aidil Rozaidi Portfolio",
-    images: [{ url: "/passport-photo.png", width: 864, height: 1184, alt: "Aidil Rozaidi" }],
+    images: [{ url: "/graduation-photo.jpg", width: 1200, height: 1800, alt: "Aidil Rozaidi" }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: ["/passport-photo.png"],
+    images: ["/graduation-photo.jpg"],
   },
 };
 

@@ -162,13 +162,13 @@ const HomeHero = () => {
           >
             <div className="relative h-full w-full">
               <Image
-                src="/passport-photo.png"
+                src="/graduation-photo.jpg"
                 alt="Aidil professional portrait"
                 fill
                 priority
                 sizes="(max-width: 640px) 68vw, (max-width: 1024px) 45vw, 350px"
                 className="object-cover"
-                style={{ objectPosition: "50% 42%" }}
+                style={{ objectPosition: "50% 28%" }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
