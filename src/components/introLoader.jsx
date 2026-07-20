@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const pipelineSteps = [
   "extracting profile data...",
@@ -16,12 +16,152 @@ const pipelineSteps = [
 // This gives it a moment to land on "launch sequence complete" before auto-dismissing.
 const AUTO_DISMISS_MS = 4800;
 
+// Same stagger the pipeline lines use (see the .map below): delay = STEP_BASE_DELAY + index * STEP_STAGGER.
+const STEP_BASE_DELAY = 0.82;
+const STEP_STAGGER = 0.48;
+
+// All sound is synthesized via Web Audio -- no audio file needed. Browsers
+// block audio autoplay-with-sound until the visitor has interacted with the
+// page, so on a cold first load this will typically no-op silently; it plays
+// fine on navigations within a session where the user has already interacted.
+function playTick(ctx) {
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "square";
+  osc.frequency.setValueAtTime(1400 + Math.random() * 500, now);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.05, now + 0.004);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.05);
+}
+
+function playTypingBurst(ctx) {
+  const clicks = 3 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < clicks; i += 1) {
+    window.setTimeout(() => playTick(ctx), i * 45 + Math.random() * 20);
+  }
+}
+
+// Soft rising whoosh -- for the terminal panel's own entrance.
+function playPanelAppear(ctx) {
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(220, now);
+  osc.frequency.exponentialRampToValueAtTime(720, now + 0.22);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.06, now + 0.05);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.3);
+}
+
+// Two-note ascending chime -- for "launch sequence complete".
+function playSuccessChime(ctx) {
+  const now = ctx.currentTime;
+  [
+    { freq: 880, start: 0 },
+    { freq: 1318.5, start: 0.11 },
+  ].forEach(({ freq, start }) => {
+    const t = now + start;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq, t);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.08, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.34);
+  });
+}
+
+// Short descending tone -- played as the loader dismisses (skip or auto).
+function playClosingSound(ctx) {
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(760, now);
+  osc.frequency.exponentialRampToValueAtTime(180, now + 0.32);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.07, now + 0.03);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.4);
+}
+
 const IntroLoader = () => {
   const [isVisible, setIsVisible] = useState(true);
+  const audioCtxRef = useRef(null);
+  const hasClosedRef = useRef(false);
+
+  const dismiss = () => {
+    if (!hasClosedRef.current) {
+      hasClosedRef.current = true;
+      const ctx = audioCtxRef.current;
+      if (ctx) {
+        ctx.resume().catch(() => {});
+        playClosingSound(ctx);
+      }
+    }
+    setIsVisible(false);
+  };
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setIsVisible(false), AUTO_DISMISS_MS);
+    const timer = window.setTimeout(dismiss, AUTO_DISMISS_MS);
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return undefined;
+
+    let ctx;
+    try {
+      ctx = new AudioContextClass();
+    } catch {
+      return undefined;
+    }
+    audioCtxRef.current = ctx;
+
+    const timers = [
+      window.setTimeout(() => {
+        ctx.resume().catch(() => {});
+        playPanelAppear(ctx);
+      }, 20),
+      ...pipelineSteps.map((_, index) => {
+        const isFinal = index === pipelineSteps.length - 1;
+        return window.setTimeout(
+          () => {
+            ctx.resume().catch(() => {});
+            if (isFinal) {
+              playSuccessChime(ctx);
+            } else {
+              playTypingBurst(ctx);
+            }
+          },
+          (STEP_BASE_DELAY + index * STEP_STAGGER) * 1000
+        );
+      }),
+    ];
+
+    return () => {
+      timers.forEach(window.clearTimeout);
+      audioCtxRef.current = null;
+      ctx.close().catch(() => {});
+    };
   }, []);
 
   return (
@@ -129,7 +269,7 @@ const IntroLoader = () => {
           <button
             type="button"
             className="absolute bottom-5 right-5 flex min-h-10 items-center border-b border-white/30 px-2 font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-white/45 transition-colors hover:border-white hover:text-white sm:bottom-8 sm:right-8"
-            onClick={() => setIsVisible(false)}
+            onClick={dismiss}
           >
             Skip intro
           </button>
