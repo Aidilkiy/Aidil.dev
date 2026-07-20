@@ -439,17 +439,17 @@ const IntroLoader = () => {
                   key="gate"
                   initial={{ opacity: 1 }}
                   animate={{ opacity: 1 }}
-                  exit={{ opacity: 0, scale: 1.04 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  exit={{ opacity: 0, scale: 1.06, filter: "blur(6px)" }}
+                  transition={{ duration: 0.6, ease: "easeInOut" }}
                 >
                   <GateScreen onEnter={startPipeline} />
                 </motion.div>
               ) : (
                 <motion.div
                   key="pipeline"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.55, ease: "easeOut" }}
                 >
                   <PipelineScreen />
                 </motion.div>
