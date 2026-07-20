@@ -12,6 +12,8 @@ const pipelineSteps = [
   "launch sequence complete",
 ];
 
+const gateChecks = ["checking environment... ok", "loading assets... ok", "awaiting input"];
+
 // The pipeline animation itself finishes around ~4.35s (progress bar) / ~3.6s (last log line).
 // This gives it a moment to land on "launch sequence complete" before auto-dismissing.
 const AUTO_DISMISS_MS = 4800;
@@ -112,7 +114,7 @@ function playSuccessChime(ctx) {
   });
 }
 
-// Short descending tone -- played as the loader dismisses (skip or auto).
+// Short descending tone -- played as the loader auto-dismisses.
 function playClosingSound(ctx) {
   const now = ctx.currentTime;
   const osc = ctx.createOscillator();
@@ -153,13 +155,21 @@ const GateScreen = ({ onEnter }) => (
   <motion.button
     type="button"
     onClick={onEnter}
-    className="group relative z-10 flex w-full max-w-md flex-col items-center gap-8 rounded-lg border border-white/12 bg-black/40 px-8 py-14 font-mono text-white backdrop-blur-xl transition-colors hover:border-teal-300/40 focus-visible:border-teal-300/60 focus-visible:outline-none"
+    className="group relative z-10 flex w-full max-w-md flex-col items-center gap-7 overflow-hidden rounded-lg border border-white/12 bg-black/40 px-8 py-14 font-mono text-white backdrop-blur-xl transition-colors hover:border-teal-300/40 focus-visible:border-teal-300/60 focus-visible:outline-none"
     initial={{ opacity: 0, scale: 0.96 }}
     animate={{ opacity: 1, scale: 1 }}
-    exit={{ opacity: 0, scale: 1.04 }}
     transition={{ duration: 0.4, ease: "easeOut" }}
     aria-label="Click or press any key to start loading the portfolio"
   >
+    {/* continuous scanning beam -- keeps the gate visibly alive while it waits */}
+    <motion.span
+      className="pointer-events-none absolute inset-x-0 h-16 bg-gradient-to-b from-transparent via-teal-300/12 to-transparent"
+      initial={{ top: "-15%" }}
+      animate={{ top: "115%" }}
+      transition={{ duration: 3.2, repeat: Infinity, ease: "linear" }}
+      aria-hidden="true"
+    />
+
     <motion.span
       className="relative flex h-20 w-20 items-center justify-center"
       animate={{ scale: [1, 1.06, 1] }}
@@ -178,15 +188,27 @@ const GateScreen = ({ onEnter }) => (
       </span>
     </div>
 
-    <div className="flex items-center gap-2 text-xs text-white/55 sm:text-sm">
-      <span className="text-teal-300">$</span>
-      <span>./boot.sh</span>
-      <motion.span
-        className="inline-block h-4 w-2 bg-white/70"
-        animate={{ opacity: [1, 1, 0, 0] }}
-        transition={{ duration: 1, repeat: Infinity, times: [0, 0.5, 0.51, 1] }}
-        aria-hidden="true"
-      />
+    <div className="w-full space-y-1.5 text-left text-[11px] text-white/45 sm:text-xs">
+      {gateChecks.map((line, index) => (
+        <motion.div
+          key={line}
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.25 + index * 0.35, duration: 0.3, ease: "easeOut" }}
+          className="flex items-center gap-2"
+        >
+          <span className="text-teal-300/70">&gt;</span>
+          <span>{line}</span>
+          {index === gateChecks.length - 1 ? (
+            <motion.span
+              className="inline-block h-3.5 w-1.5 bg-white/70"
+              animate={{ opacity: [1, 1, 0, 0] }}
+              transition={{ duration: 1, repeat: Infinity, times: [0, 0.5, 0.51, 1] }}
+              aria-hidden="true"
+            />
+          ) : null}
+        </motion.div>
+      ))}
     </div>
 
     <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/32 transition-colors group-hover:text-white/60">
@@ -195,96 +217,106 @@ const GateScreen = ({ onEnter }) => (
   </motion.button>
 );
 
-const PipelineScreen = ({ onSkip }) => (
-  <>
-    <motion.div
-      className="rounded-lg border border-white/12 bg-black/58 p-5 font-mono shadow-[0_32px_120px_rgba(0,0,0,0.48)] backdrop-blur-xl sm:p-7"
-      initial={{ opacity: 0, y: 18, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.45, ease: "easeOut" }}
+const PipelineScreen = () => (
+  <motion.div
+    className="rounded-lg border border-white/12 bg-black/58 p-5 font-mono shadow-[0_32px_120px_rgba(0,0,0,0.48)] backdrop-blur-xl sm:p-7"
+    initial={{ opacity: 0, y: 18, scale: 0.98, boxShadow: "0 0 0 rgba(45,212,191,0)" }}
+    animate={{
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      boxShadow: [
+        "0 0 0 rgba(45,212,191,0)",
+        "0 0 46px rgba(45,212,191,0.35)",
+        "0 32px 120px rgba(0,0,0,0.48)",
+      ],
+    }}
+    transition={{ duration: 0.55, ease: "easeOut" }}
+  >
+    <div className="flex items-center border-b border-white/15 pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/42 sm:text-xs">
+      <span className="mr-2 h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+      <span className="mr-2 h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+      <span className="mr-4 h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+      <span className="truncate">aidil@portfolio: ~/pipeline</span>
+    </div>
+
+    <motion.p
+      className="pt-6 font-mono text-[10px] font-black uppercase tracking-[0.38em] text-teal-200/80"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.25, duration: 0.35 }}
     >
-      <div className="flex items-center border-b border-white/15 pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/42 sm:text-xs">
-        <span className="mr-2 h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-        <span className="mr-2 h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-        <span className="mr-4 h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-        <span className="truncate">aidil@portfolio: ~/pipeline</span>
-      </div>
+      pipeline status
+    </motion.p>
 
-      <motion.p
-        className="pt-6 font-mono text-[10px] font-black uppercase tracking-[0.38em] text-teal-200/80"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.35 }}
-      >
-        pipeline status
-      </motion.p>
+    <motion.h1
+      className="mt-3 text-3xl font-black tracking-tight text-white sm:text-5xl"
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.42, duration: 0.48, ease: "easeOut" }}
+    >
+      Loading Aidil.dev
+    </motion.h1>
 
-      <motion.h1
-        className="mt-3 text-3xl font-black tracking-tight text-white sm:text-5xl"
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.42, duration: 0.48, ease: "easeOut" }}
-      >
-        Loading Aidil.dev
-      </motion.h1>
+    <div className="mt-6 min-h-[218px] space-y-3 text-xs sm:text-sm">
+      {pipelineSteps.map((step, index) => {
+        const isFinal = index === pipelineSteps.length - 1;
+        const delay = STEP_BASE_DELAY + index * STEP_STAGGER;
 
-      <div className="mt-6 min-h-[218px] space-y-3 text-xs sm:text-sm">
-        {pipelineSteps.map((step, index) => {
-          const isFinal = index === pipelineSteps.length - 1;
-
-          return (
-            <motion.div
-              className="flex items-center gap-3"
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: STEP_BASE_DELAY + index * STEP_STAGGER, duration: 0.35, ease: "easeOut" }}
-              key={step}
-            >
-              <span className={isFinal ? "text-emerald-300" : "text-rose-300"}>
-                {isFinal ? "ok" : ">"}
-              </span>
-              <span className={isFinal ? "text-emerald-200" : "text-white/68"}>{step}</span>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      <div className="mt-2">
-        <div className="mb-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.22em] text-white/38">
-          <span>build progress</span>
-          <motion.span
-            className="tabular-nums text-teal-200"
-            animate={{ opacity: [0.45, 1, 0.45] }}
-            transition={{ duration: 1, repeat: Infinity }}
-          >
-            compiling
-          </motion.span>
-        </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+        return (
           <motion.div
-            className="h-full origin-left rounded-full bg-gradient-to-r from-teal-300 via-cyan-300 to-rose-300"
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 4.35, ease: [0.22, 1, 0.36, 1] }}
-          />
-        </div>
-      </div>
-    </motion.div>
+            className="flex items-center gap-3"
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay, duration: 0.35, ease: "easeOut" }}
+            key={step}
+          >
+            <motion.span
+              className={isFinal ? "text-emerald-300" : "text-rose-300"}
+              animate={{ textShadow: ["0 0 12px currentColor", "0 0 0px currentColor"] }}
+              transition={{ delay, duration: 0.5, ease: "easeOut" }}
+            >
+              {isFinal ? "ok" : ">"}
+            </motion.span>
+            <motion.span
+              className={isFinal ? "text-emerald-200" : "text-white/68"}
+              animate={isFinal ? { textShadow: ["0 0 16px rgba(52,211,153,0.9)", "0 0 0px rgba(52,211,153,0)"] } : undefined}
+              transition={{ delay, duration: 0.6, ease: "easeOut" }}
+            >
+              {step}
+            </motion.span>
+          </motion.div>
+        );
+      })}
+    </div>
 
-    <button
-      type="button"
-      className="absolute bottom-5 right-5 flex min-h-10 items-center border-b border-white/30 px-2 font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-white/45 transition-colors hover:border-white hover:text-white sm:bottom-8 sm:right-8"
-      onClick={onSkip}
-    >
-      Skip intro
-    </button>
-  </>
+    <div className="mt-2">
+      <div className="mb-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.22em] text-white/38">
+        <span>build progress</span>
+        <motion.span
+          className="tabular-nums text-teal-200"
+          animate={{ opacity: [0.45, 1, 0.45] }}
+          transition={{ duration: 1, repeat: Infinity }}
+        >
+          compiling
+        </motion.span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+        <motion.div
+          className="h-full origin-left rounded-full bg-gradient-to-r from-teal-300 via-cyan-300 to-rose-300"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 4.35, ease: [0.22, 1, 0.36, 1] }}
+        />
+      </div>
+    </div>
+  </motion.div>
 );
 
 const IntroLoader = () => {
   const [stage, setStage] = useState("gate"); // "gate" | "pipeline" | "done"
+  const [flashKey, setFlashKey] = useState(0);
   const audioCtxRef = useRef(null);
-  const hasClosedRef = useRef(false);
 
   const startPipeline = () => {
     if (stage !== "gate") return;
@@ -303,17 +335,15 @@ const IntroLoader = () => {
         audioCtxRef.current = null;
       }
     }
+    setFlashKey((n) => n + 1);
     setStage("pipeline");
   };
 
   const dismiss = () => {
-    if (!hasClosedRef.current) {
-      hasClosedRef.current = true;
-      const ctx = audioCtxRef.current;
-      if (ctx) {
-        ctx.resume().catch(() => {});
-        playClosingSound(ctx);
-      }
+    const ctx = audioCtxRef.current;
+    if (ctx) {
+      ctx.resume().catch(() => {});
+      playClosingSound(ctx);
     }
     setStage("done");
   };
@@ -326,14 +356,15 @@ const IntroLoader = () => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [stage]);
 
-  // pipeline: auto-dismiss after it plays through
+  // pipeline: auto-dismiss after it plays through (no manual skip anymore)
   useEffect(() => {
     if (stage !== "pipeline") return undefined;
     const timer = window.setTimeout(dismiss, AUTO_DISMISS_MS);
     return () => window.clearTimeout(timer);
   }, [stage]);
 
-  // pipeline: schedule the panel-appear whoosh + per-line typing/success sounds
+  // pipeline: schedule the panel-appear whoosh + per-line typing/success sounds,
+  // timed to land on the exact same delays the visuals above use.
   useEffect(() => {
     if (stage !== "pipeline") return undefined;
     const ctx = audioCtxRef.current;
@@ -383,12 +414,25 @@ const IntroLoader = () => {
         >
           {GRID_BACKDROP}
 
+          {flashKey > 0 ? (
+            <motion.div
+              key={`flash-${flashKey}`}
+              className="pointer-events-none absolute inset-0 bg-teal-100"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.3, 0] }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              aria-hidden="true"
+            />
+          ) : null}
+
           <div className="relative w-full max-w-3xl">
             <AnimatePresence>
               {stage === "gate" ? (
                 <motion.div
                   className="flex justify-center"
                   key="gate"
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
                   exit={{ opacity: 0, scale: 1.04 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
                 >
@@ -401,7 +445,7 @@ const IntroLoader = () => {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <PipelineScreen onSkip={dismiss} />
+                  <PipelineScreen />
                 </motion.div>
               )}
             </AnimatePresence>
