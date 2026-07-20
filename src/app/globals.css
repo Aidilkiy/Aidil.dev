@@ -54,18 +54,3 @@ body::-webkit-scrollbar {
   }
 }
 
-@keyframes introOverlayOut {
-  0%, 86% {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  100% {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-
-.intro-loader-overlay {
-  animation: introOverlayOut 5.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}

@@ -316,6 +316,10 @@ const PipelineScreen = () => (
 const IntroLoader = () => {
   const [stage, setStage] = useState("gate"); // "gate" | "pipeline" | "done"
   const [flashKey, setFlashKey] = useState(0);
+  // True only once the gate has fully exited and the pipeline panel is
+  // actually on screen (see onExitComplete below) -- sound is scheduled off
+  // of this, not off `stage`, so it can never drift ahead of what's visible.
+  const [pipelineMounted, setPipelineMounted] = useState(false);
   const audioCtxRef = useRef(null);
 
   const startPipeline = () => {
@@ -356,43 +360,45 @@ const IntroLoader = () => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [stage]);
 
-  // pipeline: auto-dismiss after it plays through (no manual skip anymore)
+  // pipeline: auto-dismiss + schedule the panel-appear whoosh and per-line
+  // typing/success sounds, anchored to the moment the panel is actually
+  // visible (pipelineMounted), not to the React state flip -- with
+  // mode="wait" below, the panel doesn't mount until the gate's own exit
+  // animation finishes, so anchoring to `stage` instead would fire every
+  // sound before its matching visual had appeared.
   useEffect(() => {
-    if (stage !== "pipeline") return undefined;
-    const timer = window.setTimeout(dismiss, AUTO_DISMISS_MS);
-    return () => window.clearTimeout(timer);
-  }, [stage]);
-
-  // pipeline: schedule the panel-appear whoosh + per-line typing/success sounds,
-  // timed to land on the exact same delays the visuals above use.
-  useEffect(() => {
-    if (stage !== "pipeline") return undefined;
+    if (!pipelineMounted) return undefined;
     const ctx = audioCtxRef.current;
-    if (!ctx) return undefined;
 
-    const timers = [
-      window.setTimeout(() => {
-        ctx.resume().catch(() => {});
-        playPanelAppear(ctx);
-      }, 20),
-      ...pipelineSteps.map((_, index) => {
-        const isFinal = index === pipelineSteps.length - 1;
-        return window.setTimeout(
-          () => {
+    const dismissTimer = window.setTimeout(dismiss, AUTO_DISMISS_MS);
+    const soundTimers = ctx
+      ? [
+          window.setTimeout(() => {
             ctx.resume().catch(() => {});
-            if (isFinal) {
-              playSuccessChime(ctx);
-            } else {
-              playTypingBurst(ctx);
-            }
-          },
-          (STEP_BASE_DELAY + index * STEP_STAGGER) * 1000
-        );
-      }),
-    ];
+            playPanelAppear(ctx);
+          }, 20),
+          ...pipelineSteps.map((_, index) => {
+            const isFinal = index === pipelineSteps.length - 1;
+            return window.setTimeout(
+              () => {
+                ctx.resume().catch(() => {});
+                if (isFinal) {
+                  playSuccessChime(ctx);
+                } else {
+                  playTypingBurst(ctx);
+                }
+              },
+              (STEP_BASE_DELAY + index * STEP_STAGGER) * 1000
+            );
+          }),
+        ]
+      : [];
 
-    return () => timers.forEach(window.clearTimeout);
-  }, [stage]);
+    return () => {
+      window.clearTimeout(dismissTimer);
+      soundTimers.forEach(window.clearTimeout);
+    };
+  }, [pipelineMounted]);
 
   // close the audio context when the whole loader unmounts
   useEffect(() => {
@@ -426,7 +432,7 @@ const IntroLoader = () => {
           ) : null}
 
           <div className="relative w-full max-w-3xl">
-            <AnimatePresence>
+            <AnimatePresence mode="wait" onExitComplete={() => setPipelineMounted(stage === "pipeline")}>
               {stage === "gate" ? (
                 <motion.div
                   className="flex justify-center"
