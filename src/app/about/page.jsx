@@ -10,6 +10,7 @@ import {
     LuWorkflow,
 } from "react-icons/lu"
 import TechnicalArsenal from "@/components/technicalArsenal"
+import GitHubActivity from "@/components/githubActivity"
 
 const experiences = [
     {
@@ -403,8 +404,20 @@ const AboutPage = ({ embedded = false }) => {
                         </div>
                     </div>
                 </section>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                >
+                    <p className="mb-4 font-mono text-[10px] font-black uppercase tracking-[0.28em] text-white/35">
+                        Live from GitHub
+                    </p>
+                    <GitHubActivity />
+                </motion.div>
             </div>
-            </div>       
+            </div>
         
   
 
