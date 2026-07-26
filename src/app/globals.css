@@ -54,3 +54,19 @@ body::-webkit-scrollbar {
   }
 }
 
+@keyframes intro-loader-line-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.intro-loader-line {
+  opacity: 0;
+  animation: intro-loader-line-in 0.4s ease forwards;
+}
+

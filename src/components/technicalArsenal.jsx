@@ -71,6 +71,7 @@ const skillGroups = [
         icon: LuPanelsTopLeft,
         summary: "Building responsive interfaces, reusable components, and clear digital experiences.",
         items: ["JavaScript", "TypeScript", "React", "Angular", "Tailwind CSS", "Framer Motion"],
+        color: "#22d3ee",
     },
     {
         title: "Backend / Core Logic",
@@ -78,6 +79,7 @@ const skillGroups = [
         icon: LuServerCog,
         summary: "Writing typed application logic and connecting interfaces to dependable services.",
         items: ["Java", "C#", "PHP", "RESTful APIs"],
+        color: "#fb7185",
     },
     {
         title: "Databases & Cloud",
@@ -85,6 +87,7 @@ const skillGroups = [
         icon: LuDatabase,
         summary: "Structuring data, cloud-backed features, authentication, and application storage.",
         items: ["MySQL", "Firebase", "SQLite", "AWS"],
+        color: "#38bdf8",
     },
     {
         title: "Mobile, AR & Tools",
@@ -92,6 +95,7 @@ const skillGroups = [
         icon: LuSmartphone,
         summary: "Creating cross-platform apps, AR prototypes, and collaborative development workflows.",
         items: ["Flutter", "Dart", "Kotlin", "Unity"],
+        color: "#a78bfa",
     },
     {
         title: "Deployment / DevOps",
@@ -99,6 +103,7 @@ const skillGroups = [
         icon: LuRocket,
         summary: "Shipping real projects: version control, containerization, and live deployment.",
         items: ["Git", "GitHub", "Docker", "Render"],
+        color: "#fbbf24",
     },
     {
         title: "Design & UI/UX",
@@ -106,8 +111,14 @@ const skillGroups = [
         icon: LuPalette,
         summary: "Planning intuitive interfaces, prototyping user flows, and creating polished visual communication.",
         items: ["Figma", "Canva"],
+        color: "#34d399",
     },
 ]
+
+// Exported so the biography stat counters can show real, always-in-sync
+// numbers instead of hardcoded values that could drift from this list.
+export const skillCount = skills.length
+export const skillCategoryCount = skillGroups.length
 
 const TechnicalArsenal = ({ className = "" }) => {
     const [activeSkillGroup, setActiveSkillGroup] = useState(0)
@@ -127,7 +138,29 @@ const TechnicalArsenal = ({ className = "" }) => {
                     The languages, frameworks, platforms, and tools behind the projects below.
                 </p>
 
-                <div className="mt-10 grid gap-8 lg:grid-cols-[0.52fr_0.48fr] lg:items-stretch">
+                <div className="mt-7 rounded-lg border border-white/10 bg-white/[0.03] p-4 md:p-5">
+                    <p className="mb-3 font-mono text-[10px] font-black uppercase tracking-[0.24em] text-white/35">
+                        All {skillCount} tools, at a glance
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        {skills.map((skill) => {
+                            const SkillIcon = skill.icon
+
+                            return (
+                                <motion.span
+                                    className="flex h-9 w-9 items-center justify-center rounded-md bg-white/[0.05] ring-1 ring-white/10 transition-colors hover:bg-white/10"
+                                    whileHover={{ y: -3, scale: 1.1 }}
+                                    title={skill.name}
+                                    key={skill.name}
+                                >
+                                    <SkillIcon className="h-4 w-4" style={{ color: skill.color }} aria-hidden="true" />
+                                </motion.span>
+                            )
+                        })}
+                    </div>
+                </div>
+
+                <div className="mt-8 grid gap-8 lg:grid-cols-[0.52fr_0.48fr] lg:items-stretch">
                     <div className="grid gap-3">
                         {skillGroups.map((group, index) => {
                             const isActive = activeSkillGroup === index
@@ -136,11 +169,10 @@ const TechnicalArsenal = ({ className = "" }) => {
                             return (
                                 <motion.button
                                     type="button"
-                                    className={`group grid min-h-[116px] w-full grid-cols-[auto_1fr_auto] items-center gap-4 rounded-lg px-4 py-4 text-left transition-colors duration-300 md:px-5 ${
-                                        isActive
-                                            ? "bg-cyan-300/12 text-white shadow-[0_20px_55px_rgba(34,211,238,0.1)] ring-1 ring-cyan-300/35"
-                                            : "bg-white/[0.04] text-white ring-1 ring-white/10 hover:bg-white/[0.08]"
+                                    className={`group grid min-h-[128px] w-full grid-cols-[auto_1fr_auto] items-center gap-4 rounded-lg border px-4 py-4 text-left transition-colors duration-300 md:px-5 ${
+                                        isActive ? "bg-white/[0.06] text-white" : "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
                                     }`}
+                                    style={isActive ? { borderColor: `${group.color}55`, boxShadow: `0 20px 55px ${group.color}1a` } : undefined}
                                     onMouseEnter={() => setActiveSkillGroup(index)}
                                     onFocus={() => setActiveSkillGroup(index)}
                                     onClick={() => {
@@ -152,16 +184,44 @@ const TechnicalArsenal = ({ className = "" }) => {
                                     aria-pressed={isActive}
                                     key={group.title}
                                 >
-                                    <span className={`flex h-11 w-11 items-center justify-center rounded-md font-mono text-xs font-black ${isActive ? "bg-cyan-300 text-[#071A1F]" : "bg-white/10 text-cyan-100 ring-1 ring-white/10"}`}>
+                                    <span
+                                        className="flex h-11 w-11 items-center justify-center rounded-md font-mono text-xs font-black transition-colors duration-300"
+                                        style={isActive ? { backgroundColor: group.color, color: "#071A1F" } : { backgroundColor: "rgba(255,255,255,0.1)", color: group.color }}
+                                    >
                                         <CategoryIcon className="h-5 w-5" aria-hidden="true" />
                                     </span>
                                     <span>
                                         <span className="block text-base font-black md:text-lg">{group.title}</span>
-                                        <span className={`mt-1.5 block min-h-[48px] text-sm leading-6 transition-opacity duration-200 ${isActive ? "text-white/58 opacity-100" : "text-white/35 opacity-60"}`}>
+                                        <span className={`mt-1.5 block text-sm leading-6 transition-opacity duration-200 ${isActive ? "text-white/58 opacity-100" : "text-white/35 opacity-60"}`}>
                                             {group.summary}
                                         </span>
+                                        <span className="mt-2.5 flex flex-wrap items-center gap-2">
+                                            <span
+                                                className="rounded-full px-2 py-0.5 font-mono text-[10px] font-bold"
+                                                style={{ backgroundColor: `${group.color}1f`, color: group.color }}
+                                            >
+                                                {group.items.length} tools
+                                            </span>
+                                            <span className="flex items-center gap-1.5">
+                                                {group.items.slice(0, 3).map((skillName) => {
+                                                    const previewSkill = skills.find((item) => item.name === skillName)
+                                                    const PreviewIcon = previewSkill?.icon
+                                                    return PreviewIcon ? (
+                                                        <PreviewIcon
+                                                            key={skillName}
+                                                            className="h-3.5 w-3.5 opacity-55"
+                                                            style={{ color: previewSkill.color }}
+                                                            aria-hidden="true"
+                                                        />
+                                                    ) : null
+                                                })}
+                                            </span>
+                                        </span>
                                     </span>
-                                    <span className={`flex h-9 w-9 items-center justify-center rounded-full text-lg transition-transform duration-300 ${isActive ? "translate-x-1 bg-cyan-300 text-[#071A1F]" : "bg-white/10 text-white group-hover:translate-x-1"}`}>
+                                    <span
+                                        className="flex h-9 w-9 items-center justify-center rounded-full text-lg transition-transform duration-300 group-hover:translate-x-1"
+                                        style={isActive ? { backgroundColor: group.color, color: "#071A1F" } : { backgroundColor: "rgba(255,255,255,0.1)", color: "white" }}
+                                    >
                                         -&gt;
                                     </span>
                                 </motion.button>
@@ -169,8 +229,11 @@ const TechnicalArsenal = ({ className = "" }) => {
                         })}
                     </div>
 
-                    <div className="relative hidden min-h-[410px] overflow-hidden rounded-lg bg-white/[0.055] p-5 ring-1 ring-white/10 md:p-7 lg:block">
-                        <div className="absolute right-5 top-4 font-mono text-6xl font-black text-white/[0.035]">
+                    <div
+                        className="relative hidden min-h-[410px] overflow-hidden rounded-lg bg-[#050c0f] p-5 md:p-7 lg:block"
+                        style={{ boxShadow: `inset 0 0 0 1px ${selectedSkillGroup.color}22` }}
+                    >
+                        <div className="absolute right-5 top-4 font-mono text-6xl font-black text-white/[0.05]">
                             0{activeSkillGroup + 1}
                         </div>
                         <AnimatePresence mode="wait">
@@ -183,8 +246,13 @@ const TechnicalArsenal = ({ className = "" }) => {
                                 key={selectedSkillGroup.title}
                             >
                                 <div>
-                                    <p className="font-mono text-xs font-bold uppercase tracking-[0.28em] text-rose-300">Active category</p>
-                                    <h3 className="mt-3 text-2xl font-black">{selectedSkillGroup.shortTitle}</h3>
+                                    <p
+                                        className="font-mono text-xs font-bold uppercase tracking-[0.28em]"
+                                        style={{ color: selectedSkillGroup.color }}
+                                    >
+                                        Active category
+                                    </p>
+                                    <h3 className="mt-3 text-2xl font-black text-white">{selectedSkillGroup.shortTitle}</h3>
                                 </div>
 
                                 <div className="mt-7 grid flex-1 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
@@ -194,14 +262,15 @@ const TechnicalArsenal = ({ className = "" }) => {
 
                                         return (
                                             <motion.div
-                                                className="group/skill flex min-h-[122px] flex-col items-center justify-center rounded-lg bg-black/35 p-3 text-center ring-1 ring-white/10 transition-colors hover:bg-white hover:text-black"
+                                                className="group/skill flex min-h-[122px] flex-col items-center justify-center rounded-lg border bg-black/55 p-3 text-center transition-colors hover:bg-white hover:text-black"
+                                                style={{ borderColor: `${selectedSkillGroup.color}30` }}
                                                 initial={{ opacity: 0, scale: 0.9, y: 12 }}
                                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                                 transition={{ delay: index * 0.055, duration: 0.3 }}
                                                 whileHover={{ y: -5 }}
                                                 key={skillName}
                                             >
-                                                <span className="flex h-14 w-14 items-center justify-center rounded-md bg-white/[0.055] shadow-lg ring-1 ring-white/10 transition-transform duration-300 group-hover/skill:scale-110 group-hover/skill:bg-black">
+                                                <span className="flex h-14 w-14 items-center justify-center rounded-md bg-white/10 shadow-lg ring-1 ring-white/15 transition-transform duration-300 group-hover/skill:scale-110 group-hover/skill:bg-black">
                                                     {SkillIcon ? (
                                                         <SkillIcon
                                                             className="h-8 w-8"

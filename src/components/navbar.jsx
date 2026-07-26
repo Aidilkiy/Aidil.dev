@@ -4,21 +4,32 @@ import Link from 'next/link'
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import NavLink from './navLink';
-import { motion } from "framer-motion";
+import { motion, useScroll } from "framer-motion";
 
 
 const links = [
     {url: "/#about", title: "About", section: "about"},
     {url: "/#experience", title: "Experience", section: "experience"},
+    {url: "/#education", title: "Education", section: "education"},
     {url: "/#work", title: "Projects", section: "work"},
     {url: "/#certifications", title: "Certifications", section: "certifications"},
+    {url: "/#leadership", title: "Leadership", section: "leadership"},
     {url: "/#contact", title: "Contact", section: "contact"},
 ];
 
 const Navbar = () => {
     const[open,setOpen] = useState (false)
     const [activeSection, setActiveSection] = useState("home")
+    const [scrolled, setScrolled] = useState(false)
     const pathName = usePathname()
+    const { scrollYProgress } = useScroll()
+
+    useEffect(() => {
+        const updateScrolled = () => setScrolled(window.scrollY > 24)
+        updateScrolled()
+        window.addEventListener("scroll", updateScrolled, { passive: true })
+        return () => window.removeEventListener("scroll", updateScrolled)
+    }, [])
 
     const scrollToSection = (sectionId) => {
         const section = document.getElementById(sectionId)
@@ -45,6 +56,19 @@ const Navbar = () => {
         }
 
         scrollToSection(link.section)
+    }
+
+    const handleLogoClick = () => {
+        setOpen(false)
+
+        if (pathName !== "/") {
+            window.location.assign("/")
+            return
+        }
+
+        window.history.replaceState(null, "", "/")
+        window.scrollTo({ top: 0, behavior: "smooth" })
+        setActiveSection("home")
     }
 
     useEffect(() => {
@@ -135,9 +159,20 @@ const Navbar = () => {
 
 
     return (
-        <header className="relative flex h-[78px] items-center bg-[#071A1F] px-6 text-xl sm:px-8">
+        <header
+            className={`relative flex h-[78px] items-center px-6 text-xl backdrop-blur-xl transition-colors duration-500 sm:px-8 ${
+                scrolled
+                    ? "border-b border-white/10 bg-[#071A1F]/85 shadow-[0_18px_50px_rgba(0,0,0,0.35)]"
+                    : "border-b border-transparent bg-[#071A1F]/35"
+            }`}
+        >
+        <motion.div
+            className="absolute inset-x-0 bottom-0 h-[2px] origin-left bg-[#2DD4BF]"
+            style={{ scaleX: scrollYProgress }}
+            aria-hidden="true"
+        />
         <div className="relative mx-auto flex h-full w-full max-w-[1420px] items-center justify-between">
-        
+
         {/* LINKS */}
         <nav className="absolute left-1/2 hidden max-w-[calc(100%-330px)] -translate-x-1/2 md:flex" aria-label="Main navigation">
             <div className="flex items-center gap-8 overflow-x-auto [scrollbar-width:none] lg:gap-9 xl:gap-10 [&::-webkit-scrollbar]:hidden">
@@ -149,22 +184,31 @@ const Navbar = () => {
 
 
         {/* LOGO */}
-        <div className="flex select-none items-center gap-2.5 font-mono text-[1.05rem] font-black tracking-[0.015em] text-white md:absolute md:left-0">
-            <span className="h-2.5 w-2.5 rounded-full bg-[#2DD4BF] shadow-[0_0_16px_rgba(45,212,191,0.48)]" />
-            <span>Aidil <span className="font-black text-[#6F858A]">.dev</span></span>
-        </div>
+        <button
+            type="button"
+            onClick={handleLogoClick}
+            aria-label="Go to top of page"
+            className="group flex select-none items-center gap-2.5 font-mono text-[1.05rem] font-black tracking-[0.015em] text-white transition-transform duration-300 hover:scale-[1.03] md:absolute md:left-0"
+        >
+            <motion.span
+                className="h-2.5 w-2.5 rounded-full bg-[#2DD4BF]"
+                animate={{
+                    boxShadow: [
+                        "0 0 6px 0 rgba(45,212,191,0.35)",
+                        "0 0 16px 4px rgba(45,212,191,0.55)",
+                        "0 0 6px 0 rgba(45,212,191,0.35)",
+                    ],
+                }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <span className="transition-colors duration-300 group-hover:text-[#2DD4BF]">
+                Aidil <span className="font-black text-[#6F858A] transition-colors duration-300 group-hover:text-white/80">.dev</span>
+            </span>
+        </button>
 
 
         {/* RESPONSIVE MENU*/}
         <div className ="flex items-center gap-3 md:absolute md:right-0">
-        <Link
-            href="/Aidil-Rozaidi-CV.pdf"
-            target="_blank"
-            rel="noreferrer"
-            className="hidden h-10 items-center rounded-[8px] border border-[#17343A] bg-transparent px-5 font-mono text-[13px] font-black tracking-[0.02em] text-white/88 transition-colors hover:border-[#2DD4BF]/70 hover:text-white md:inline-flex"
-        >
-            CV
-        </Link>
         <div className ="md:hidden">
         
         {/* MENU BUTTON*/}

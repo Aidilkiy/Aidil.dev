@@ -2,8 +2,9 @@
 
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
-import { motion } from "framer-motion"
+import { AnimatePresence, motion, useScroll } from "framer-motion"
 import { LuArrowUpRight, LuCode, LuGithub, LuSmartphone, LuTerminal } from "react-icons/lu"
+import GitHubActivity from "@/components/githubActivity"
 
 const projects = [
     {
@@ -45,7 +46,7 @@ const projects = [
         description:
             "A RAG-based tool that indexes any public GitHub repo and answers natural-language questions about the actual code, citing the exact files and lines it used instead of guessing.",
         stack: ["React", "TypeScript", "Node.js", "Gemini API", "SQLite"],
-        cover: "",
+        cover: "/work/repochat-demo.gif",
         alt: "RepoChat AI codebase question answering tool",
         number: "03",
         context: "Personal Project / Open Source",
@@ -319,6 +320,109 @@ const FeaturePill = ({ children }) => (
     </span>
 )
 
+const statTones = {
+    cyan: { bg: "bg-cyan-300/10", text: "text-cyan-200", rest: "rgba(103,232,249,0)", peak: "rgba(103,232,249,0.22)" },
+    violet: { bg: "bg-violet-300/10", text: "text-violet-200", rest: "rgba(196,181,253,0)", peak: "rgba(196,181,253,0.22)" },
+}
+
+const StatBadge = ({ value, tone = "cyan" }) => {
+    const t = statTones[tone]
+
+    return (
+        <motion.span
+            className={`inline-flex h-12 min-w-[3rem] items-center justify-center rounded-full px-3 font-serif text-xl font-black ${t.bg} ${t.text}`}
+            animate={{ boxShadow: [`0 0 0 0 ${t.rest}`, `0 0 0 7px ${t.peak}`, `0 0 0 0 ${t.rest}`] }}
+            transition={{ duration: 2.6, repeat: Infinity, ease: "easeOut" }}
+        >
+            {value}
+        </motion.span>
+    )
+}
+
+// Appears once a project is open: a right-edge rail of dots (one per
+// top-level `data-toc-label` section inside the detail view) that fills in
+// as a scroll-progress track and jumps to a section on click.
+const DetailTableOfContents = ({ containerRef, activeKey }) => {
+    const [sections, setSections] = useState([])
+    const [activeId, setActiveId] = useState(null)
+    const { scrollYProgress } = useScroll({ target: containerRef })
+
+    useEffect(() => {
+        if (!activeKey || !containerRef.current) {
+            setSections([])
+            return undefined
+        }
+
+        // The previous project's sections take ~0.5s to exit-animate and
+        // unmount, so querying immediately on change would also catch stale
+        // nodes mid-crossfade. Wait for that to settle before reading the DOM.
+        let nodes = []
+        let removeScrollListener = () => {}
+
+        const settleTimeout = window.setTimeout(() => {
+            if (!containerRef.current) return
+            nodes = Array.from(containerRef.current.querySelectorAll("[data-toc-label]"))
+            setSections(nodes.map((node) => ({ id: node.id, label: node.dataset.tocLabel })))
+            setActiveId(nodes[0]?.id ?? null)
+
+            const updateActive = () => {
+                const marker = window.scrollY + window.innerHeight * 0.35
+                const current = nodes.reduce((active, node) => (node.offsetTop <= marker ? node : active), nodes[0])
+                if (current?.id) setActiveId(current.id)
+            }
+
+            updateActive()
+            window.addEventListener("scroll", updateActive, { passive: true })
+            removeScrollListener = () => window.removeEventListener("scroll", updateActive)
+        }, 600)
+
+        return () => {
+            window.clearTimeout(settleTimeout)
+            removeScrollListener()
+        }
+    }, [activeKey, containerRef])
+
+    if (sections.length === 0) return null
+
+    const scrollToSection = (id) => {
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+
+    return (
+        <div className="fixed right-5 top-1/2 z-40 hidden -translate-y-1/2 lg:block">
+            <div className="relative flex flex-col items-center gap-6 py-2">
+                <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 overflow-hidden rounded-full bg-white/10" aria-hidden="true">
+                    <motion.div className="w-full origin-top bg-cyan-300" style={{ scaleY: scrollYProgress, height: "100%" }} />
+                </div>
+                {sections.map((section) => (
+                    <button
+                        type="button"
+                        key={section.id}
+                        onClick={() => scrollToSection(section.id)}
+                        className="group relative flex items-center gap-2"
+                        aria-label={`Jump to ${section.label}`}
+                    >
+                        <span
+                            className={`absolute right-full mr-3 whitespace-nowrap rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] opacity-0 transition-all duration-200 group-hover:opacity-100 ${
+                                activeId === section.id ? "border-cyan-300/50 bg-cyan-300/10 text-cyan-200" : "border-white/15 bg-black/70 text-white/60"
+                            }`}
+                        >
+                            {section.label}
+                        </span>
+                        <motion.span
+                            className={`h-2.5 w-2.5 rounded-full border transition-colors duration-200 ${
+                                activeId === section.id ? "border-cyan-300 bg-cyan-300" : "border-white/30 bg-white/10 group-hover:border-white/60"
+                            }`}
+                            animate={activeId === section.id ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+                            transition={{ duration: 1.4, repeat: activeId === section.id ? Infinity : 0, ease: "easeInOut" }}
+                        />
+                    </button>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 const ProjectShowcase = ({ project, index, isSelected, onOpen }) => {
     const isAgentPortal = project.title === "Agent Client Portal"
     const isMiitGuide = project.title === "MIITGuide"
@@ -329,11 +433,17 @@ const ProjectShowcase = ({ project, index, isSelected, onOpen }) => {
         : isMiitGuide
             ? "bg-teal-300/10 text-teal-200"
             : "bg-violet-300/10 text-violet-200"
+    const borderAccent = isAgentPortal ? "hover:border-rose-300/55" : isMiitGuide ? "hover:border-teal-300/55" : "hover:border-violet-300/55"
+    const overlayAccent = isAgentPortal
+        ? "from-rose-950/80 via-rose-950/10"
+        : isMiitGuide
+            ? "from-teal-950/80 via-teal-950/10"
+            : "from-violet-950/80 via-violet-950/10"
 
     return (
         <motion.article
             className={`group/project flex min-h-[360px] flex-col overflow-hidden rounded-lg border bg-white/[0.045] text-white shadow-[0_18px_45px_rgba(167,139,250,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_45px_rgba(167,139,250,0.14)] ${
-                isSelected ? "border-cyan-300/70 bg-cyan-300/[0.055]" : "border-white/10 hover:border-violet-300/55 hover:bg-violet-300/[0.045]"
+                isSelected ? "border-cyan-300/70 bg-cyan-300/[0.055]" : `border-white/10 ${borderAccent}`
             }`}
             initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -343,30 +453,56 @@ const ProjectShowcase = ({ project, index, isSelected, onOpen }) => {
             <button
                 type="button"
                 onClick={() => onOpen(project.title)}
-                className="flex h-full flex-1 flex-col p-5 text-left md:p-6"
+                className="flex h-full flex-1 flex-col text-left"
                 aria-label={`Open ${project.title} case study`}
             >
+                {project.cover ? (
+                    <div className="relative h-40 w-full overflow-hidden bg-black/40">
+                        <Image
+                            src={project.cover}
+                            alt={project.alt}
+                            fill
+                            unoptimized={project.cover.endsWith(".gif")}
+                            sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+                            className="object-cover object-top transition-transform duration-500 group-hover/project:scale-110"
+                        />
+                        <div className={`pointer-events-none absolute inset-0 bg-gradient-to-t ${overlayAccent} to-transparent`} />
+                        <span className={`absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-[10px] text-lg backdrop-blur-md ${iconTone}`}>
+                            <ProjectIcon className="h-4.5 w-4.5" aria-hidden="true" />
+                        </span>
+                    </div>
+                ) : null}
+
+                <div className="flex flex-1 flex-col p-5 md:p-6">
                 <div className="flex items-start justify-between gap-4">
-                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] text-lg ${iconTone}`}>
-                        <ProjectIcon className="h-5 w-5" aria-hidden="true" />
-                    </span>
+                    {project.cover ? (
+                        <span className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-200/70">
+                            {project.context}
+                        </span>
+                    ) : (
+                        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] text-lg ${iconTone}`}>
+                            <ProjectIcon className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                    )}
                     {isFeatured ? (
-                        <span className="rounded-full border border-amber-300/35 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.12)]">
+                        <span className="shrink-0 rounded-full border border-amber-300/35 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.12)]">
                             Featured
                         </span>
                     ) : (
-                        <span className="rounded-full border border-white/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-white/35">
+                        <span className="shrink-0 rounded-full border border-white/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-white/35">
                             Case Study
                         </span>
                     )}
                 </div>
 
-                <h2 className="mt-5 text-xl font-semibold leading-tight text-white md:text-[1.18rem]">
+                <h2 className="mt-3 text-xl font-semibold leading-tight text-white md:text-[1.18rem]">
                     {project.title}
                 </h2>
-                <p className="mt-2 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-200/70">
-                    {project.context}
-                </p>
+                {!project.cover ? (
+                    <p className="mt-2 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-200/70">
+                        {project.context}
+                    </p>
+                ) : null}
                 <p className="mt-4 flex-1 text-sm leading-7 text-white/58">
                     {project.description}
                 </p>
@@ -395,6 +531,7 @@ const ProjectShowcase = ({ project, index, isSelected, onOpen }) => {
                     <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-white/55 transition-all duration-300 group-hover/project:border-cyan-300/50 group-hover/project:text-cyan-200">
                         <LuArrowUpRight className="h-4 w-4" aria-hidden="true" />
                     </span>
+                </div>
                 </div>
             </button>
         </motion.article>
@@ -512,6 +649,8 @@ const WorkPage = ({ embedded = false }) => {
     const isMiitGuideSelected = selectedProject === "MIITGuide"
     const isRepoChatSelected = selectedProject === "RepoChat"
     const filteredProjects = projects.filter((project) => project.categories.includes(activeFilter))
+    const selectedIndex = projects.findIndex((project) => project.title === selectedProject)
+    const nextProject = selectedIndex >= 0 ? projects[(selectedIndex + 1) % projects.length] : null
 
     return (
         <motion.div
@@ -564,12 +703,13 @@ const WorkPage = ({ embedded = false }) => {
                                     <div className="flex flex-wrap gap-2.5">
                                         {projectFilters.map((filter) => {
                                             const isActive = activeFilter === filter.value
+                                            const matchCount = projects.filter((project) => project.categories.includes(filter.value)).length
 
                                             return (
                                                 <button
                                                     type="button"
                                                     onClick={() => setActiveFilter(filter.value)}
-                                                    className={`h-10 rounded-full border px-4 font-mono text-xs font-bold transition-all duration-300 ${
+                                                    className={`flex h-10 items-center gap-2 rounded-full border px-4 font-mono text-xs font-bold transition-all duration-300 ${
                                                         isActive
                                                             ? "border-violet-300 bg-violet-300 text-[#0f0524]"
                                                             : "border-white/10 bg-white/[0.035] text-white/55 hover:border-violet-300/60 hover:text-white"
@@ -577,6 +717,13 @@ const WorkPage = ({ embedded = false }) => {
                                                     key={filter.value}
                                                 >
                                                     {filter.label}
+                                                    <span
+                                                        className={`rounded-full px-1.5 py-0.5 text-[10px] ${
+                                                            isActive ? "bg-[#0f0524]/15 text-[#0f0524]" : "bg-white/10 text-white/40"
+                                                        }`}
+                                                    >
+                                                        {matchCount}
+                                                    </span>
                                                 </button>
                                             )
                                         })}
@@ -600,14 +747,16 @@ const WorkPage = ({ embedded = false }) => {
                 </section>
 
                 <section ref={detailRef} className="mx-auto mt-12 max-w-6xl scroll-mt-8 px-4 pb-12 sm:px-8 md:px-10 lg:px-14 2xl:px-14">
+                    <AnimatePresence>
                     {isAgentSelected ? (
                         <motion.div
                             initial={{ opacity: 0, y: 28 }}
                             animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
                             transition={{ duration: 0.5, ease: "easeOut" }}
                             key="agent-client-portal-detail"
                         >
-                            <section className="relative overflow-hidden rounded-lg bg-black px-5 py-8 text-white shadow-[0_30px_90px_rgba(15,23,42,0.25)] md:px-8 md:py-10">
+                            <section id="toc-agent-overview" data-toc-label="Overview" className="relative overflow-hidden rounded-lg bg-black px-5 py-8 text-white shadow-[0_30px_90px_rgba(15,23,42,0.25)] md:px-8 md:py-10">
                                 <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:48px_48px]" />
                                 <div className="relative grid gap-8 lg:grid-cols-[0.62fr_0.38fr] lg:items-end">
                                     <div>
@@ -645,7 +794,7 @@ const WorkPage = ({ embedded = false }) => {
                                 </div>
                             </section>
 
-                            <section className="mt-8">
+                            <section id="toc-agent-case-study" data-toc-label="Case study" className="mt-8">
                                 <div className="grid gap-8 lg:grid-cols-[0.38fr_0.62fr] lg:items-start">
                                     <div className="lg:sticky lg:top-8">
                                         <div className="rounded-lg bg-black p-6 text-white shadow-[0_24px_70px_rgba(15,23,42,0.2)]">
@@ -723,10 +872,11 @@ const WorkPage = ({ embedded = false }) => {
                         <motion.div
                             initial={{ opacity: 0, y: 28 }}
                             animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
                             transition={{ duration: 0.5, ease: "easeOut" }}
                             key="miitguide-detail"
                         >
-                            <section className="relative overflow-hidden rounded-lg bg-black px-5 py-8 text-white shadow-[0_30px_90px_rgba(15,23,42,0.25)] md:px-8 md:py-10">
+                            <section id="toc-miit-overview" data-toc-label="Overview" className="relative overflow-hidden rounded-lg bg-black px-5 py-8 text-white shadow-[0_30px_90px_rgba(15,23,42,0.25)] md:px-8 md:py-10">
                                 <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:48px_48px]" />
                                 <div className="relative grid gap-8 lg:grid-cols-[0.62fr_0.38fr] lg:items-end">
                                     <div>
@@ -773,7 +923,7 @@ const WorkPage = ({ embedded = false }) => {
                                 </div>
                             </section>
 
-                            <section className="mt-8 grid gap-4 md:grid-cols-3">
+                            <section id="toc-miit-highlights" data-toc-label="Highlights" className="mt-8 grid gap-4 md:grid-cols-3">
                                 {miitGuideHighlights.map((item, index) => (
                                     <motion.article
                                         className="relative overflow-hidden rounded-lg border border-white/12 bg-[#061418]/88 p-5 text-white shadow-[0_20px_55px_rgba(0,0,0,0.18)]"
@@ -785,7 +935,7 @@ const WorkPage = ({ embedded = false }) => {
                                     >
                                         <div className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:40px_40px]" />
                                         <div className="relative">
-                                            <p className="font-serif text-4xl text-cyan-200">{item.value}</p>
+                                            <StatBadge value={item.value} tone="cyan" />
                                             <h3 className="mt-2 text-lg font-black">{item.label}</h3>
                                             <p className="mt-3 leading-7 text-white/62">{item.text}</p>
                                         </div>
@@ -793,7 +943,7 @@ const WorkPage = ({ embedded = false }) => {
                                 ))}
                             </section>
 
-                            <section className="mt-8 grid gap-8 lg:grid-cols-[0.38fr_0.62fr] lg:items-start">
+                            <section id="toc-miit-deep-dive" data-toc-label="Deep dive" className="mt-8 grid gap-8 lg:grid-cols-[0.38fr_0.62fr] lg:items-start">
                                 <div className="lg:sticky lg:top-8">
                                     <div className="rounded-lg bg-black p-6 text-white shadow-[0_24px_70px_rgba(15,23,42,0.2)]">
                                         <p className="font-mono text-xs font-bold uppercase tracking-[0.32em] text-teal-200">The challenge</p>
@@ -841,7 +991,7 @@ const WorkPage = ({ embedded = false }) => {
                                 </div>
                             </section>
 
-                            <section className="mt-8 grid gap-6 lg:grid-cols-[0.7fr_0.3fr] lg:items-start">
+                            <section id="toc-miit-research" data-toc-label="Research" className="mt-8 grid gap-6 lg:grid-cols-[0.7fr_0.3fr] lg:items-start">
                                 <motion.article
                                     className="relative overflow-hidden rounded-lg border border-white/12 bg-[#061418]/88 p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)] md:p-6"
                                     initial={{ opacity: 0, y: 30 }}
@@ -880,10 +1030,11 @@ const WorkPage = ({ embedded = false }) => {
                         <motion.div
                             initial={{ opacity: 0, y: 28 }}
                             animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
                             transition={{ duration: 0.5, ease: "easeOut" }}
                             key="repochat-detail"
                         >
-                            <section className="relative overflow-hidden rounded-lg bg-black px-5 py-8 text-white shadow-[0_30px_90px_rgba(15,23,42,0.25)] md:px-8 md:py-10">
+                            <section id="toc-repo-overview" data-toc-label="Overview" className="relative overflow-hidden rounded-lg bg-black px-5 py-8 text-white shadow-[0_30px_90px_rgba(15,23,42,0.25)] md:px-8 md:py-10">
                                 <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:48px_48px]" />
                                 <div className="relative grid gap-8 lg:grid-cols-[0.62fr_0.38fr] lg:items-end">
                                     <div>
@@ -939,7 +1090,7 @@ const WorkPage = ({ embedded = false }) => {
                                 </div>
                             </section>
 
-                            <section className="mt-8 overflow-hidden rounded-lg border border-white/12 bg-black shadow-[0_24px_70px_rgba(0,0,0,0.2)]">
+                            <section id="toc-repo-demo" data-toc-label="Demo" className="mt-8 overflow-hidden rounded-lg border border-white/12 bg-black shadow-[0_24px_70px_rgba(0,0,0,0.2)]">
                                 <img
                                     src="/work/repochat-demo.gif"
                                     alt="RepoChat demo: indexing a GitHub repo, then asking a question and getting an answer with expandable file and line citations"
@@ -947,7 +1098,7 @@ const WorkPage = ({ embedded = false }) => {
                                 />
                             </section>
 
-                            <section className="mt-8 grid gap-4 md:grid-cols-3">
+                            <section id="toc-repo-highlights" data-toc-label="Highlights" className="mt-8 grid gap-4 md:grid-cols-3">
                                 {repoChatHighlights.map((item, index) => (
                                     <motion.article
                                         className="relative overflow-hidden rounded-lg border border-white/12 bg-[#061418]/88 p-5 text-white shadow-[0_20px_55px_rgba(0,0,0,0.18)]"
@@ -959,7 +1110,7 @@ const WorkPage = ({ embedded = false }) => {
                                     >
                                         <div className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:40px_40px]" />
                                         <div className="relative">
-                                            <p className="font-serif text-4xl text-violet-200">{item.value}</p>
+                                            <StatBadge value={item.value} tone="violet" />
                                             <h3 className="mt-2 text-lg font-black">{item.label}</h3>
                                             <p className="mt-3 leading-7 text-white/62">{item.text}</p>
                                         </div>
@@ -967,7 +1118,7 @@ const WorkPage = ({ embedded = false }) => {
                                 ))}
                             </section>
 
-                            <section className="mt-8 grid gap-8 lg:grid-cols-[0.38fr_0.62fr] lg:items-start">
+                            <section id="toc-repo-case-study" data-toc-label="Case study" className="mt-8 grid gap-8 lg:grid-cols-[0.38fr_0.62fr] lg:items-start">
                                 <div className="lg:sticky lg:top-8">
                                     <div className="rounded-lg bg-black p-6 text-white shadow-[0_24px_70px_rgba(15,23,42,0.2)]">
                                         <p className="font-mono text-xs font-bold uppercase tracking-[0.35em] text-violet-300">Case Study</p>
@@ -1025,7 +1176,7 @@ const WorkPage = ({ embedded = false }) => {
                                 </motion.div>
                             </section>
 
-                            <section className="mt-8 rounded-lg border border-white/12 bg-[#061418]/88 p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)] md:p-8">
+                            <section id="toc-repo-challenge" data-toc-label="Challenge" className="mt-8 rounded-lg border border-white/12 bg-[#061418]/88 p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)] md:p-8">
                                 <p className="font-mono text-xs font-bold uppercase tracking-[0.32em] text-violet-300">Engineering Challenge</p>
                                 <h2 className="mt-4 font-serif text-2xl leading-tight md:text-4xl">What happens when a repo is bigger than expected?</h2>
                                 <p className="mt-4 max-w-3xl leading-8 text-white/68">
@@ -1042,7 +1193,7 @@ const WorkPage = ({ embedded = false }) => {
                                             transition={{ delay: index * 0.08, duration: 0.45 }}
                                             key={item.label}
                                         >
-                                            <p className="font-serif text-3xl text-violet-200">{item.value}</p>
+                                            <StatBadge value={item.value} tone="violet" />
                                             <h3 className="mt-2 text-base font-black">{item.label}</h3>
                                             <p className="mt-3 text-sm leading-7 text-white/62">{item.text}</p>
                                         </motion.div>
@@ -1054,7 +1205,7 @@ const WorkPage = ({ embedded = false }) => {
                                 </p>
                             </section>
 
-                            <section className="mt-8 rounded-lg border border-white/12 bg-[#061418]/88 p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)] md:p-8">
+                            <section id="toc-repo-architecture" data-toc-label="Architecture" className="mt-8 rounded-lg border border-white/12 bg-[#061418]/88 p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.2)] md:p-8">
                                 <p className="font-mono text-xs font-bold uppercase tracking-[0.32em] text-violet-300">From Monolith to Microservices</p>
                                 <h2 className="mt-4 font-serif text-2xl leading-tight md:text-4xl">Splitting the app, hitting a CDN surprise, then rolling it back.</h2>
                                 <p className="mt-4 max-w-3xl leading-8 text-white/68">
@@ -1071,7 +1222,7 @@ const WorkPage = ({ embedded = false }) => {
                                             transition={{ delay: index * 0.08, duration: 0.45 }}
                                             key={item.label}
                                         >
-                                            <p className="font-serif text-3xl text-violet-200">{item.value}</p>
+                                            <StatBadge value={item.value} tone="violet" />
                                             <h3 className="mt-2 text-base font-black">{item.label}</h3>
                                             <p className="mt-3 text-sm leading-7 text-white/62">{item.text}</p>
                                         </motion.div>
@@ -1084,6 +1235,43 @@ const WorkPage = ({ embedded = false }) => {
                             </section>
                         </motion.div>
                     ) : null}
+                    </AnimatePresence>
+
+                    {selectedProject ? (
+                        <motion.button
+                            type="button"
+                            onClick={() => openProject(nextProject.title)}
+                            className="group mt-10 flex w-full items-center justify-between gap-4 rounded-lg border border-white/12 bg-white/[0.04] p-5 text-left text-white transition-all duration-300 hover:border-cyan-300/50 hover:bg-cyan-300/[0.05] md:p-6"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, amount: 0.4 }}
+                        >
+                            <div>
+                                <p className="font-mono text-[10px] font-black uppercase tracking-[0.24em] text-white/40">Next project</p>
+                                <p className="mt-2 text-xl font-black">{nextProject.title}</p>
+                                <p className="mt-1 text-sm text-white/55">{nextProject.type}</p>
+                            </div>
+                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/60 transition-all duration-300 group-hover:border-cyan-300/50 group-hover:bg-cyan-300/10 group-hover:text-cyan-200">
+                                <LuArrowUpRight className="h-5 w-5" aria-hidden="true" />
+                            </span>
+                        </motion.button>
+                    ) : null}
+                </section>
+
+                <DetailTableOfContents containerRef={detailRef} activeKey={selectedProject} />
+
+                <section className="mx-auto mt-4 w-full max-w-6xl px-4 pb-16 sm:px-8 md:px-10 lg:px-14 2xl:px-14">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.3 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                    >
+                        <p className="mb-4 font-mono text-[10px] font-black uppercase tracking-[0.28em] text-white/35">
+                            Live from GitHub
+                        </p>
+                        <GitHubActivity />
+                    </motion.div>
                 </section>
             </div>
 

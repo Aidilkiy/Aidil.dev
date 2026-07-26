@@ -1,14 +1,17 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
+import { useRef } from "react";
 import { LuGithub, LuLinkedin, LuMail } from "react-icons/lu";
 import ResumeButton from "@/components/resumeButton";
 import AboutPage from "./about/page";
 import WorkPage from "./work/page";
 import ContactPage from "./contact/page";
 import CertificationsSection from "@/components/certificationsSection";
+import LeadershipSection from "@/components/leadershipSection";
+import LanyardCard from "@/components/lanyardCard";
+import FleeWrap from "@/components/fleeWrap";
 
 const highlights = ["Software engineering", "Application support", "Cloud & DevOps"];
 const stats = [
@@ -31,7 +34,60 @@ const socialLinks = [
   { label: "Email", href: "mailto:aidilkiy21@gmail.com", icon: LuMail },
 ];
 
+// Wraps a single interactive child and lets it drift a few pixels toward the
+// cursor while hovered, snapping back on leave -- a cheap "magnetic button"
+// feel that reads as far more deliberate than a plain :hover state.
+const MagneticWrap = ({ children, strength = 16, className = "" }) => {
+  const ref = useRef(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 300, damping: 22, mass: 0.5 });
+  const springY = useSpring(y, { stiffness: 300, damping: 22, mass: 0.5 });
+
+  const handleMouseMove = (event) => {
+    const rect = ref.current.getBoundingClientRect();
+    x.set(((event.clientX - rect.left - rect.width / 2) / rect.width) * strength);
+    y.set(((event.clientY - rect.top - rect.height / 2) / rect.height) * strength);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      style={{ x: springX, y: springY }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
 const HomeHero = () => {
+  const visualRef = useRef(null);
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  const springTiltX = useSpring(tiltX, { stiffness: 140, damping: 18 });
+  const springTiltY = useSpring(tiltY, { stiffness: 140, damping: 18 });
+
+  const handleVisualMove = (event) => {
+    const rect = visualRef.current.getBoundingClientRect();
+    const px = (event.clientX - rect.left) / rect.width - 0.5;
+    const py = (event.clientY - rect.top) / rect.height - 0.5;
+    tiltY.set(px * 12);
+    tiltX.set(py * -12);
+  };
+
+  const handleVisualLeave = () => {
+    tiltX.set(0);
+    tiltY.set(0);
+  };
+
   return (
     <div className="min-h-[calc(100vh-78px)] overflow-x-clip px-4 py-7 sm:px-8 md:px-10 lg:px-12 lg:py-0 xl:px-16 2xl:px-28">
       <div className="mx-auto grid min-h-[calc(100vh-78px)] max-w-[1500px] items-center gap-8 lg:grid-cols-[1fr_0.92fr] lg:gap-10 2xl:gap-16">
@@ -43,9 +99,14 @@ const HomeHero = () => {
             transition={{ delay: 0.15, duration: 0.6 }}
           >
             {highlights.map((item) => (
-              <span className="rounded border border-white/10 bg-white/[0.07] px-2.5 py-1.5 text-xs font-semibold text-white/72 shadow-sm" key={item}>
+              <motion.span
+                className="rounded border border-white/10 bg-white/[0.07] px-2.5 py-1.5 text-xs font-semibold text-white/72 shadow-sm"
+                whileHover={{ y: -3, borderColor: "rgba(45,212,191,0.5)", color: "rgba(255,255,255,0.95)" }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                key={item}
+              >
                 {item}
-              </span>
+              </motion.span>
             ))}
           </motion.div>
 
@@ -70,10 +131,12 @@ const HomeHero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.65 }}
           >
-            <Link href="#work" className="group relative flex justify-center overflow-hidden rounded-full border border-white/70 bg-black px-6 py-4 font-bold text-white shadow-[0_18px_45px_rgba(15,23,42,0.18)] transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex">
-              <span className="absolute inset-y-0 left-0 w-1/3 -translate-x-full bg-white/35 blur-xl transition-transform duration-700 group-hover:translate-x-[340%]" />
-              <span className="relative">View My Work</span>
-            </Link>
+            <MagneticWrap strength={14} className="sm:inline-block">
+              <Link href="#work" className="group relative flex justify-center overflow-hidden rounded-full border border-white/70 bg-black px-6 py-4 font-bold text-white shadow-[0_18px_45px_rgba(15,23,42,0.18)] transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex">
+                <span className="absolute inset-y-0 left-0 w-1/3 -translate-x-full bg-white/35 blur-xl transition-transform duration-700 group-hover:translate-x-[340%]" />
+                <span className="relative">View My Work</span>
+              </Link>
+            </MagneticWrap>
             <ResumeButton className="px-6" />
           </motion.div>
 
@@ -108,16 +171,31 @@ const HomeHero = () => {
             transition={{ delay: 0.38, duration: 0.65 }}
           >
             {stats.map((item) => (
-              <div className="min-w-0 border-r border-white/10 px-2 last:border-r-0 sm:px-3" key={item.label}>
+              <motion.div
+                className="min-w-0 rounded-md border-r border-white/10 px-2 last:border-r-0 sm:px-3"
+                whileHover={{ y: -3, backgroundColor: "rgba(45,212,191,0.06)" }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                key={item.label}
+              >
                 <p className="text-lg font-black sm:text-xl 2xl:text-2xl">{item.value}</p>
                 <p className="mt-1 text-[11px] font-semibold leading-4 text-white/48 sm:text-xs">{item.label}</p>
-              </div>
+              </motion.div>
             ))}
           </motion.div>
 
         </div>
 
-        <div className="relative min-h-[390px] overflow-hidden sm:min-h-[500px] lg:min-h-[540px] xl:min-h-[620px]">
+        <div
+          ref={visualRef}
+          onMouseMove={handleVisualMove}
+          onMouseLeave={handleVisualLeave}
+          className="relative min-h-[390px] overflow-hidden sm:min-h-[500px] lg:min-h-[540px] xl:min-h-[620px]"
+          style={{ perspective: 1200 }}
+        >
+          <motion.div
+            className="absolute inset-0"
+            style={{ rotateX: springTiltX, rotateY: springTiltY, transformStyle: "preserve-3d" }}
+          >
           <svg className="absolute inset-0 h-full w-full" viewBox="0 0 560 640" fill="none" aria-hidden="true">
             <motion.path
               d="M62 454 C178 252 328 558 493 182"
@@ -150,103 +228,105 @@ const HomeHero = () => {
             ))}
           </svg>
 
-          <motion.div
-            className="absolute inset-x-0 top-8 mx-auto h-[66%] w-[68%] max-w-[350px] overflow-hidden rounded-lg bg-white shadow-2xl ring-2 ring-black group sm:top-12 sm:w-[64%]"
-            initial={{ opacity: 0, y: 40, rotate: -2 }}
-            animate={{ opacity: 1, y: [0, -6, 0], rotate: [-1, -1.8, -1] }}
-            transition={{
-              opacity: { delay: 0.15, duration: 0.7, ease: "easeOut" },
-              y: { delay: 0.15, duration: 6, repeat: Infinity, ease: "easeInOut" },
-              rotate: { delay: 0.15, duration: 6, repeat: Infinity, ease: "easeInOut" },
-            }}
-          >
-            <div className="relative h-full w-full">
-              <Image
-                src="/graduation-photo.jpg"
-                alt="Aidil professional portrait"
-                fill
-                priority
-                sizes="(max-width: 640px) 68vw, (max-width: 1024px) 45vw, 350px"
-                className="object-cover"
-                style={{ objectPosition: "50% 28%" }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Professional profile</p>
-                <p className="mt-2 text-2xl font-black">Software Engineering graduate</p>
-              </div>
-            </div>
-          </motion.div>
+          <LanyardCard />
 
           <motion.div
-            className="absolute left-0 top-4 hidden w-[245px] rounded-lg bg-black p-4 font-mono text-xs text-white shadow-xl ring-1 ring-white/20 sm:block"
+            className="absolute left-0 top-4 hidden w-[245px] sm:block"
             initial={{ opacity: 0, x: -24, y: 16 }}
-            animate={{ opacity: 1, x: 0, y: [0, -8, 0], rotate: [-2, -1.2, -2] }}
+            animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
             transition={{
               opacity: { delay: 0.5, duration: 0.4 },
               x: { delay: 0.5, duration: 0.4 },
               y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
-              rotate: { duration: 5, repeat: Infinity, ease: "easeInOut" },
             }}
           >
-            <div className="mb-3 flex gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-teal-300" />
-              <span className="h-2.5 w-2.5 rounded-full bg-sky-400" />
-              <span className="h-2.5 w-2.5 rounded-full bg-white" />
-            </div>
-            {codeLines.map((line, index) => (
-              <motion.p
-                className="whitespace-nowrap text-white/85"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.8 + index * 0.18 }}
-                key={line}
+            <FleeWrap strength={90} radius={170}>
+              <motion.div
+                className="rounded-lg bg-black p-4 font-mono text-xs text-white shadow-xl ring-1 ring-white/20"
+                animate={{ rotate: [-2, -1.2, -2] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
               >
-                <span className="text-sky-300">{">"}</span> {line}
-              </motion.p>
-            ))}
+                <div className="mb-3 flex gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-teal-300" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-sky-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-white" />
+                </div>
+                {codeLines.map((line, index) => (
+                  <motion.p
+                    className="whitespace-nowrap text-white/85"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.8 + index * 0.18 }}
+                    key={line}
+                  >
+                    <span className="text-sky-300">{">"}</span> {line}
+                  </motion.p>
+                ))}
+              </motion.div>
+            </FleeWrap>
           </motion.div>
 
           <motion.div
-            className="absolute bottom-2 right-0 hidden w-[210px] rounded-lg bg-white p-3 shadow-xl ring-1 ring-black/10 sm:block"
+            className="absolute bottom-2 right-0 hidden w-[210px] sm:block"
             initial={{ opacity: 0, x: 20, y: 20 }}
-            animate={{ opacity: 1, x: 0, y: [0, 8, 0], rotate: [1.5, 2.4, 1.5] }}
+            animate={{ opacity: 1, x: 0, y: [0, 8, 0] }}
             transition={{
               opacity: { delay: 0.7, duration: 0.4 },
               x: { delay: 0.7, duration: 0.4 },
               y: { duration: 5.5, repeat: Infinity, ease: "easeInOut" },
-              rotate: { duration: 5.5, repeat: Infinity, ease: "easeInOut" },
             }}
           >
-            <p className="text-xs font-bold uppercase tracking-wide text-teal-600">logic board</p>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {formulas.map((item) => (
-                <div className="rounded bg-black px-3 py-2 text-center text-xs font-bold text-white" key={item}>
-                  {item}
+            <FleeWrap strength={90} radius={170}>
+              <motion.div
+                className="rounded-lg bg-white p-3 shadow-xl ring-1 ring-black/10"
+                animate={{ rotate: [1.5, 2.4, 1.5] }}
+                transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <p className="text-xs font-bold uppercase tracking-wide text-teal-600">logic board</p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {formulas.map((item) => (
+                    <div className="rounded bg-black px-3 py-2 text-center text-xs font-bold text-white" key={item}>
+                      {item}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </motion.div>
+            </FleeWrap>
           </motion.div>
 
           <motion.div
-            className="absolute right-0 top-4 w-[195px] rounded-lg bg-teal-500 px-3 py-2.5 text-center text-xs font-bold leading-5 text-[#071A1F] shadow-lg sm:top-5 sm:w-[220px] sm:px-4 sm:py-3 sm:text-sm"
+            className="absolute right-0 top-4 w-[195px] sm:top-5 sm:w-[220px]"
             initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1, y: [0, -6, 0], rotate: [1.5, 0.7, 1.5] }}
+            animate={{ opacity: 1, scale: 1, y: [0, -6, 0] }}
             transition={{
               opacity: { delay: 0.95, duration: 0.45 },
               scale: { delay: 0.95, duration: 0.45 },
               y: { duration: 5.2, repeat: Infinity, ease: "easeInOut" },
-              rotate: { duration: 5.2, repeat: Infinity, ease: "easeInOut" },
             }}
           >
-            Open to Software, Cloud & Support Roles
+            <FleeWrap strength={90} radius={170}>
+              <motion.div
+                className="rounded-lg bg-teal-500 px-3 py-2.5 text-center text-xs font-bold leading-5 text-[#071A1F] shadow-lg sm:px-4 sm:py-3 sm:text-sm"
+                animate={{ rotate: [1.5, 0.7, 1.5] }}
+                transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                Open to Software, Cloud & Support Roles
+              </motion.div>
+            </FleeWrap>
+          </motion.div>
           </motion.div>
 
           <Link
             href="#about"
             aria-label="Go to about page"
-            className="absolute bottom-2 left-1/2 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full bg-black text-2xl font-black text-white shadow-lg ring-1 ring-black transition-colors hover:bg-white hover:text-black"
+            className="group absolute bottom-2 left-1/2 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full bg-black text-2xl font-black text-white shadow-lg ring-1 ring-black transition-colors hover:bg-white hover:text-black"
           >
+            <motion.span
+              className="absolute inset-0 rounded-full border border-teal-300/50"
+              animate={{ scale: [1, 1.6, 1], opacity: [0.6, 0, 0.6] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+              aria-hidden="true"
+            />
             <motion.span animate={{ y: [0, 5, 0] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}>
               <span className="block rotate-90">{">"}</span>
             </motion.span>
@@ -271,6 +351,9 @@ const PortfolioPage = () => {
       </section>
       <section className="scroll-mt-[78px] border-t border-white/10">
         <CertificationsSection />
+      </section>
+      <section className="scroll-mt-[78px] border-t border-white/10">
+        <LeadershipSection />
       </section>
       <section id="contact" className="min-h-[calc(100vh-78px)] scroll-mt-[78px] border-t border-white/10">
         <ContactPage embedded />
