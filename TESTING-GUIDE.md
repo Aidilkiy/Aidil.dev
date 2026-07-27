@@ -173,7 +173,11 @@ The copy test checks the UI said "Copied!" **and** reads the actual clipboard. A
 
 **The intro-loader overlay.** This site shows a 7-second full-screen boot animation. Any click during it fails with "element is covered". Solutions applied (see `helpers.js` + config):
 1. `reducedMotion: "reduce"` in the config — the loader respects the OS "reduce motion" setting and auto-skips. Emulating user preferences is a legit QA technique.
-2. A defensive Skip-click in a shared helper, then an assertion that the overlay is *hidden* before any test proceeds.
+2. A shared `gotoHome()` helper that *waits* for the overlay to dismiss itself before any test proceeds. An earlier version also clicked the Skip button — see the hydration story below for why that was removed.
+
+**Hydration and the "dead button".** On React/Next.js sites, the page's HTML appears before React's JavaScript "plugs in" the event handlers (hydration). Until then, buttons are visible but *dead* — clicks do nothing. Our helper originally clicked Skip during that dead zone: the click silently no-oped and the test timed out. The fix: stop clicking and instead wait for the *outcome* (overlay hidden, generous timeout). **Prefer observing outcomes over performing choreography** — and remember dead clicks whenever a test "clicked the button but nothing happened" on a React app.
+
+**Cold starts and slow first loads.** `next dev` compiles pages on first request and serves images slowly; the first tests to hit a cold server timed out (later tests passed once it warmed up — the classic cold-start signature: "first run fails, rerun passes"). Fixes: a raised test `timeout` in the config, and `waitUntil: "domcontentloaded"` in the helper so `goto` doesn't wait for every image to download ("page rendered" ≠ "load event fired").
 
 **Clipboard permissions.** Browsers ask the user before a page may read the clipboard. Headless tests have no user to click "Allow", so the config pre-grants `clipboard-read`/`clipboard-write`.
 
@@ -215,7 +219,9 @@ The workflow at `.github/workflows/playwright.yml` is active — the first pipel
 | `strict mode violation: resolved to N elements` | Your locator matches several elements | Add `exact: true`, scope inside a parent locator, or use `.first()` deliberately |
 | `element is not visible` / `element is covered` | Something overlaps it (remember the intro loader!) | Make sure `gotoHome()` was used; check for overlays/modals |
 | `Port 3000 is already in use` (CI) | A stray server was running when Playwright tried to start one | Locally harmless (`reuseExistingServer` handles it); on CI, kill duplicate server steps |
-| `browserType.launch: Executable doesn't exist` | Playwright's browser isn't installed on this machine | `npx playwright install chromium` |
+| `browserType.launch: Executable doesn't exist` | Playwright's browser isn't installed on this machine | `npx playwright install chromium` (we hit this on day one — the error message contains its own fix) |
+| Click happens but nothing changes (React app) | Pre-hydration "dead button" — JS not wired up yet | Wait for an *outcome* (e.g. overlay hidden) instead of clicking early |
+| First run fails with timeouts, rerun passes | Cold start — dev server compiling on first request | Raise the test `timeout`; use `waitUntil: "domcontentloaded"`; rerun |
 | `Error: page.evaluate: ... clipboard` | Clipboard permission missing | Already granted in `playwright.config.js` — check you didn't remove `permissions` |
 | Test passes locally, fails on CI | Usually timing (slower machine) or dev/prod difference | Download the CI report artifact, open the trace, watch what happened |
 
