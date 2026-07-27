@@ -2,15 +2,29 @@
 
 *Your personal reference for the automated test suite in this portfolio — and for QA interviews.*
 
+**Status: ✅ COMPLETE AND LIVE**
+
+| | |
+|---|---|
+| Test suite | 13 E2E tests, all passing |
+| Framework | Playwright 1.x (JavaScript) |
+| CI/CD | GitHub Actions — runs on every push/PR to `main` |
+| First CI run | ✅ Passed in 2.3 minutes ([see it live](https://github.com/Aidilkiy/Aidil.dev/actions)) |
+| Local run time | ~55s (dev server) / ~53s (production build) |
+
+**Contents:** 1. Why this exists · 2. How to run · 3. How this suite was built · 4. Testing pyramid · 5. What's in the suite · 6. Core concepts · 7. Problems solved (interview stories) · 8. CI pipeline · 9. Reading results & debugging · 10. Troubleshooting · 11. Glossary · 12. Learning path · 13. Cheat sheet
+
 ---
 
 ## 1. Why this exists
 
-This project now has an **end-to-end (E2E) test suite** built with [Playwright](https://playwright.dev). E2E tests open a real browser, click through the site like a visitor would, and verify that everything works. This is the exact skill asked for in QA Engineer roles ("Playwright", "JavaScript/TypeScript automated tests", "testing pyramid", "CI/CD integration").
+This project has an **end-to-end (E2E) test suite** built with [Playwright](https://playwright.dev). E2E tests open a real browser, click through the site like a visitor would, and verify that everything works. This is the exact skill asked for in QA Engineer roles ("Playwright", "JavaScript/TypeScript automated tests", "testing pyramid", "CI/CD integration").
 
 On your CV you can now honestly write:
 
 > Built an automated E2E test suite with Playwright (JavaScript) covering critical user journeys — navigation, responsive mobile behaviour, and clipboard interactions — integrated into a GitHub Actions CI/CD pipeline that tests the production build on every push.
+
+Every word of that is verifiable: the code is public, and the Actions tab shows green pipeline runs.
 
 ---
 
@@ -37,7 +51,23 @@ npx playwright codegen localhost:3000             # record your clicks as code
 
 ---
 
-## 3. The big picture: the Testing Pyramid
+## 3. How this suite was built, step by step
+
+This mirrors how a QA engineer approaches a new app on the job — the process is a skill in itself:
+
+1. **Explored the app first.** Read the source to find what matters: four page sections on one scrolling page, a navbar that scrolls to anchors, a contact section with copy-to-clipboard, a mobile hamburger menu — and a 7-second intro animation covering everything on load.
+2. **Chose what to test.** Not everything — the *critical user journeys*: does the site load, can a visitor navigate, can a recruiter reach the contact info, does it work on a phone. (See the testing pyramid, section 4.)
+3. **Installed the tooling.** `npm install --save-dev @playwright/test`, then `npx playwright install chromium` to download the browser Playwright drives.
+4. **Wrote the config** (`playwright.config.js`) before any test: base URL, auto-started web server, reduced-motion emulation, clipboard permissions, screenshots on failure.
+5. **Solved the blocker first.** The intro overlay would have broken every test, so the shared `gotoHome()` helper in `tests/helpers.js` was written before any test file.
+6. **Wrote tests in increasing difficulty** — smoke → navigation → interactions → mobile — and ran them: **13/13 passed, 58s**.
+7. **Added CI** (`.github/workflows/playwright.yml`), switched CI runs to the production build, **simulated CI locally first** (`CI=true npm test` → 13/13 in 52.7s), then pushed. First real pipeline run: **✅ success, 2.3 minutes**.
+
+**The habit to copy:** verify locally before pushing; solve shared problems in one helper, not in every test; test the build users actually get.
+
+---
+
+## 4. The big picture: the Testing Pyramid
 
 Job postings mention "applying the testing pyramid". It means: have many cheap fast tests, fewer expensive slow ones.
 
@@ -55,21 +85,44 @@ Job postings mention "applying the testing pyramid". It means: have many cheap f
 
 ---
 
-## 4. What's in this suite
+## 5. What's in this suite — all 13 tests
 
-| File | What it tests | Key concepts taught |
+| File | Tests | Key concepts taught |
 |---|---|---|
-| `tests/helpers.js` | (shared setup) | DRY helpers, handling app overlays |
-| `tests/01-smoke.spec.js` | Page loads, headline, links | locators, `getByRole`, web-first assertions |
-| `tests/02-navigation.spec.js` | Navbar scrolls to sections | scoping locators, `toHaveURL`, `toBeInViewport` |
-| `tests/03-contact.spec.js` | Copy-to-clipboard flow | testing interactions & side effects, `page.evaluate` |
-| `tests/04-mobile.spec.js` | Hamburger menu on phone viewport | `test.use`, responsive testing, asserting absence |
+| `tests/helpers.js` | (shared setup, no tests) | DRY helpers, handling app overlays |
+| `tests/01-smoke.spec.js` | 5 tests | locators, `getByRole`, web-first assertions |
+| `tests/02-navigation.spec.js` | 3 tests | scoping locators, `toHaveURL`, `toBeInViewport` |
+| `tests/03-contact.spec.js` | 3 tests | interactions & side effects, `page.evaluate` |
+| `tests/04-mobile.spec.js` | 2 tests | `test.use`, responsive testing, asserting absence |
+
+The full list — each name states an expected behaviour, readable as a mini spec of the site:
+
+**01 — Smoke** (does the app fundamentally work?)
+1. page loads with the correct title
+2. hero shows the main headline
+3. primary call-to-action points at the work section
+4. social links point to the right profiles
+5. hero stats strip renders all three stats
+
+**02 — Navigation** (can a visitor get around?)
+6. navbar shows the logo and all section links
+7. clicking Contact scrolls to the contact section
+8. clicking Projects scrolls to the work section
+
+**03 — Contact** (can a recruiter reach you?)
+9. contact cards link to the right destinations
+10. copy button copies the email address and shows feedback
+11. availability panel and footer are present
+
+**04 — Mobile** (does it work on a phone?)
+12. shows the hamburger button instead of the desktop navbar
+13. hamburger opens the menu and navigates to a section
 
 Each file has heavy comments — **read them top to bottom in order**, they build on each other.
 
 ---
 
-## 5. Core concepts (the vocabulary of QA automation)
+## 6. Core concepts (the vocabulary of QA automation)
 
 ### Locators — how you find elements
 
@@ -116,7 +169,7 @@ The copy test checks the UI said "Copied!" **and** reads the actual clipboard. A
 
 ---
 
-## 6. Real problems this suite already solved (great interview stories)
+## 7. Real problems this suite solved (great interview stories)
 
 **The intro-loader overlay.** This site shows a 7-second full-screen boot animation. Any click during it fails with "element is covered". Solutions applied (see `helpers.js` + config):
 1. `reducedMotion: "reduce"` in the config — the loader respects the OS "reduce motion" setting and auto-skips. Emulating user preferences is a legit QA technique.
@@ -126,32 +179,51 @@ The copy test checks the UI said "Copied!" **and** reads the actual clipboard. A
 
 **Strict mode / ambiguous locators.** "GitHub" matches a link in the hero AND one in the contact section. Playwright refuses to guess (strict mode) — we disambiguated with `exact: true` and by scoping searches inside the navbar locator. Ambiguity errors are a *feature*: they catch tests that might silently click the wrong thing.
 
----
-
-## 7. Reading test results
-
-- Terminal: `ok` per test, then `13 passed`.
-- On failure, Playwright prints the failing assertion, the locator, and saves a **screenshot** into `test-results/`.
-- `npm run test:report` opens the HTML report of the last run.
-- On CI retries, a **trace** is recorded — open with `npx playwright show-trace <file>` to replay the whole test with DOM snapshots, console, and network. Traces are the single best debugging tool in Playwright.
+**Dev/prod parity.** Locally you test against `next dev`; visitors get the production build — and prod-only bugs exist (build failures, different optimisation). The config switches on `CI=true` to `next build && next start`, so the pipeline tests what actually ships. We proved this path worked by simulating CI locally *before* pushing.
 
 ---
 
-## 8. CI: the tests run automatically on every push
+## 8. CI: the tests run automatically on every push ✅ LIVE
 
-This repo has a GitHub Actions workflow at `.github/workflows/playwright.yml`. Read the file — every step is commented. In short:
+The workflow at `.github/workflows/playwright.yml` is active — the first pipeline run passed in 2.3 minutes with every step green. Read the file; every step is commented. In short:
 
 - **Trigger:** every push and pull request to `main`.
-- **What happens:** GitHub spins up a clean Ubuntu machine, installs your exact dependencies (`npm ci`), installs Chromium, and runs `npx playwright test`. A failure marks the commit with a red ❌.
-- **Prod parity:** on CI, `playwright.config.js` detects `CI=true` and tests the **production build** (`next build` + `next start`) instead of the dev server — CI verifies what visitors actually get, and a broken build fails the pipeline too.
+- **What happens:** GitHub spins up a clean Ubuntu machine, checks out the code, installs your exact dependencies (`npm ci` — reproducible, unlike `npm install`), installs Chromium, and runs `npx playwright test`. A failure marks the commit with a red ❌.
+- **Prod parity:** on CI, `playwright.config.js` detects `CI=true` and tests the **production build** — CI verifies what visitors actually get, and a broken build fails the pipeline too.
 - **Debugging failures:** open the failed run on GitHub → *Artifacts* → download `playwright-report` → unzip and open `index.html`. It contains screenshots and traces of the failure.
-- **Where to see runs:** the *Actions* tab of the repo, or the ✅/❌ icon next to each commit.
+- **Where to see runs:** the [Actions tab](https://github.com/Aidilkiy/Aidil.dev/actions) of the repo, or the ✅/❌ icon next to each commit.
 
 **Interview line this earns you:** "My E2E suite is integrated into a CI/CD pipeline — every push runs the tests against a production build on a clean machine, with HTML reports and traces uploaded as artifacts for debugging."
 
 ---
 
-## 9. Glossary (terms that come up in interviews)
+## 9. Reading results & debugging
+
+- Terminal: `ok` per test, then `13 passed`.
+- On failure, Playwright prints the failing assertion, the locator, and saves a **screenshot** into `test-results/`.
+- `npm run test:report` opens the HTML report of the last run.
+- On CI retries, a **trace** is recorded — open with `npx playwright show-trace <file>` to replay the whole test with DOM snapshots, console, and network. Traces are the single best debugging tool in Playwright.
+- To debug one test interactively: `npx playwright test -g "test name" --debug` — opens the Playwright Inspector and steps through line by line.
+
+---
+
+## 10. Troubleshooting — errors you'll meet while experimenting
+
+| Error message | What it means | Fix |
+|---|---|---|
+| `Timed out waiting for expect(locator).toBeVisible()` | The element never appeared — wrong locator, or the feature actually broke | Run with `--ui` and look at the page; check the locator matches what's rendered |
+| `strict mode violation: resolved to N elements` | Your locator matches several elements | Add `exact: true`, scope inside a parent locator, or use `.first()` deliberately |
+| `element is not visible` / `element is covered` | Something overlaps it (remember the intro loader!) | Make sure `gotoHome()` was used; check for overlays/modals |
+| `Port 3000 is already in use` (CI) | A stray server was running when Playwright tried to start one | Locally harmless (`reuseExistingServer` handles it); on CI, kill duplicate server steps |
+| `browserType.launch: Executable doesn't exist` | Playwright's browser isn't installed on this machine | `npx playwright install chromium` |
+| `Error: page.evaluate: ... clipboard` | Clipboard permission missing | Already granted in `playwright.config.js` — check you didn't remove `permissions` |
+| Test passes locally, fails on CI | Usually timing (slower machine) or dev/prod difference | Download the CI report artifact, open the trace, watch what happened |
+
+**Golden debugging rule:** don't guess — *look*. UI mode, traces, and screenshots show you exactly what the browser saw. Guessing is how flaky "fixes" get written.
+
+---
+
+## 11. Glossary (terms that come up in interviews)
 
 | Term | Meaning |
 |---|---|
@@ -167,27 +239,40 @@ This repo has a GitHub Actions workflow at `.github/workflows/playwright.yml`. R
 | **Headless** | Browser running without a visible window (how CI runs tests) |
 | **Trace** | Playwright's recording of a test run for debugging |
 | **AAA** | Arrange–Act–Assert, the standard test structure |
+| **Artifact (CI)** | A file a pipeline saves for download — here, the HTML test report |
+| **`npm ci`** | Clean install of *exactly* what package-lock.json pins — the CI-safe install command |
+| **Prod parity** | Testing the same build users get, not just the dev version |
 
 ---
 
-## 10. Suggested learning path from here
+## 12. Learning path
+
+Done so far (by building this suite):
+
+- [x] Playwright installed and configured
+- [x] 13 tests across smoke / navigation / interaction / mobile — all passing
+- [x] Shared helper pattern for app-specific setup
+- [x] CI pipeline on GitHub Actions — first run green (2.3 min)
+- [x] Production-build testing on CI
+
+Your next steps, in order:
 
 1. **Watch the suite run:** `npm run test:ui` — click through each test's steps.
-2. **Break something on purpose:** change a heading in `src/app/page.jsx`, run `npm test`, read the failure, fix it back. Seeing failures teaches more than seeing passes.
+2. **Break something on purpose:** change a heading in `src/app/page.jsx`, run `npm test`, read the failure, fix it back. Seeing failures teaches more than seeing passes. Then push a breaking change on a branch and watch CI catch it — that's the pipeline doing its job.
 3. **Write one new test yourself.** Ideas (in rough difficulty order):
    - The About section shows some text you care about
    - The resume button exists and points at your PDF
    - The Certifications section renders each certificate name
    - The Work section shows all your project cards
 4. **Try codegen:** `npx playwright codegen localhost:3000` — click around, watch it write code, compare its output to our hand-written tests.
-5. **Study the CI workflow (already set up — see section 8):** read `.github/workflows/playwright.yml` line by line, then push a commit and watch it run in the repo's *Actions* tab. Background reading: https://playwright.dev/docs/ci-intro
-6. **Then explore:** visual regression (`toHaveScreenshot`), accessibility scans (`@axe-core/playwright`), API testing (`request` fixture) — each is one more bullet point of genuine skill.
+5. **Study the CI workflow:** read `.github/workflows/playwright.yml` line by line — every step is commented. Background reading: https://playwright.dev/docs/ci-intro
+6. **Then explore:** visual regression (`toHaveScreenshot`), accessibility scans (`@axe-core/playwright`), API testing (`request` fixture), cross-browser (add `firefox`/`webkit` projects in the config) — each is one more bullet point of genuine skill.
 
 Official docs — genuinely good: https://playwright.dev/docs/intro
 
 ---
 
-## 11. Cheat sheet
+## 13. Cheat sheet
 
 ```js
 // Navigate
@@ -221,4 +306,11 @@ test.describe("group", () => { ... });
 test.beforeEach(async ({ page }) => { ... });
 test("name", async ({ page }) => { ... });
 test.use({ viewport: { width: 375, height: 812 } });  // per-file overrides
+
+// Run (terminal)
+// npm test                          all tests, headless
+// npm run test:ui                   interactive UI mode (learning!)
+// npx playwright test -g "name"     one test by name
+// npx playwright test --debug       step through with Inspector
+// npx playwright codegen <url>      record clicks as code
 ```
