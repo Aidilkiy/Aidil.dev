@@ -15,21 +15,25 @@ const { expect } = require("@playwright/test");
  * on-screen, and we always WAIT until the overlay is hidden before returning.
  */
 async function gotoHome(page, path = "/") {
-  await page.goto(path);
+  // waitUntil: "domcontentloaded" = proceed once the HTML is parsed, WITHOUT
+  // waiting for every image to finish downloading (the default "load" event).
+  // This image-heavy site on a slow dev server can take minutes to fire
+  // "load", while the content our assertions need is ready in seconds --
+  // and each assertion auto-waits for its own element anyway.
+  await page.goto(path, { waitUntil: "domcontentloaded" });
 
   const overlay = page.locator(".intro-loader-overlay");
 
-  // If the intro is still visible, dismiss it via its Skip button. The
-  // .catch() guards a race: the overlay may finish hiding on its own between
-  // our check and our click, and that's fine -- we only care that it's gone.
-  if (await overlay.isVisible().catch(() => false)) {
-    await page.getByRole("button", { name: /skip/i }).click().catch(() => {});
-  }
-
-  // Web-first assertion: retries automatically until the overlay is hidden
-  // (or 10s pass). Never use fixed sleeps like waitForTimeout for this --
-  // they make tests slow AND flaky at the same time.
-  await expect(overlay).toBeHidden({ timeout: 10_000 });
+  // Don't click the Skip button: until React hydrates, it's a "dead" button
+  // (visible but not wired up), so the click is a no-op race. The loader
+  // dismisses ITSELF once hydration runs -- instantly under our
+  // reducedMotion: "reduce" setting -- so we only need to wait for that.
+  //
+  // Web-first assertion: retries automatically until the overlay is hidden.
+  // The generous timeout covers slow hydration on a cold dev server; in the
+  // normal warm case this resolves in about a second. Never use fixed sleeps
+  // (waitForTimeout) for this -- they make tests slow AND flaky at once.
+  await expect(overlay).toBeHidden({ timeout: 60_000 });
 }
 
 module.exports = { gotoHome };

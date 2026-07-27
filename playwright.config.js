@@ -6,6 +6,11 @@ module.exports = defineConfig({
   // Where the test files live. Playwright picks up every *.spec.js file in here.
   testDir: "./tests",
 
+  // Max time per test (default is 30s). Raised because `next dev` compiles
+  // pages on first request -- a cold start can eat 30s+ before the page even
+  // renders, which timed out the first tests to hit the fresh server.
+  timeout: 90_000,
+
   // Run test FILES in parallel (each file gets its own browser context).
   fullyParallel: true,
 
