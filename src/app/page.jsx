@@ -13,7 +13,7 @@ import LeadershipSection from "@/components/leadershipSection";
 import LanyardCard from "@/components/lanyardCard";
 import FleeWrap from "@/components/fleeWrap";
 
-const highlights = ["Software engineering", "Application support", "Cloud & DevOps"];
+const highlights = ["Software engineering", "Application support", "Quality assurance", "Cloud & DevOps"];
 const stats = [
   { value: "AWS", label: "Cloud certified" },
   { value: "2", label: "Professional roles" },
@@ -121,7 +121,7 @@ const HomeHero = () => {
               I build practical software for real users.
             </h1>
             <p className="max-w-2xl text-base leading-relaxed text-white/68 md:text-xl">
-              Hi, I&apos;m Aidil. I work across development and application support, with a growing focus on cloud and DevOps.
+              Hi, I&apos;m Aidil. I work across development, application support, and quality assurance, with a growing focus on cloud and DevOps.
             </p>
           </motion.div>
 

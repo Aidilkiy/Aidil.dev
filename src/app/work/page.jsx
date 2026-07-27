@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion, useScroll } from "framer-motion"
-import { LuArrowUpRight, LuCode, LuGithub, LuShieldCheck, LuSmartphone, LuTerminal } from "react-icons/lu"
+import { LuArrowUpRight, LuCheck, LuCode, LuGithub, LuShieldCheck, LuSmartphone, LuTerminal } from "react-icons/lu"
 import GitHubActivity from "@/components/githubActivity"
 
 const projects = [
@@ -313,6 +313,128 @@ const repoChatArchitectureEvolution = [
         text: "Render's private networking between the split services proved unreliable in production, and a local Kubernetes setup separately hit an unrelated Docker environment issue. Rolled back to the single-service version rather than leave production broken chasing it — the split's code and lessons stay in git history to revisit later.",
     },
 ]
+
+const testSuites = [
+    { name: "Smoke", count: 5 },
+    { name: "Navigation", count: 3 },
+    { name: "Contact", count: 3 },
+    { name: "Mobile", count: 2 },
+]
+
+function timeAgo(dateStr) {
+    const diffMs = Date.now() - new Date(dateStr).getTime()
+    const mins = Math.floor(diffMs / 60000)
+    if (mins < 1) return "just now"
+    if (mins < 60) return `${mins}m ago`
+    const hours = Math.floor(mins / 60)
+    if (hours < 24) return `${hours}h ago`
+    const days = Math.floor(hours / 24)
+    if (days < 30) return `${days}d ago`
+    const months = Math.floor(days / 30)
+    return `${months}mo ago`
+}
+
+// Counts from 0 to `value` once it scrolls into view. Same plain
+// requestAnimationFrame pattern used across the site's other stat rows.
+const QualityStat = ({ value, label }) => {
+    const [display, setDisplay] = useState(0)
+    const startedRef = useRef(false)
+
+    const handleViewportEnter = () => {
+        if (startedRef.current) return
+        startedRef.current = true
+
+        const duration = 900
+        const startTime = performance.now()
+
+        const tick = (now) => {
+            const progress = Math.min(1, (now - startTime) / duration)
+            const eased = 1 - (1 - progress) ** 3
+            setDisplay(Math.round(eased * value))
+            if (progress < 1) window.requestAnimationFrame(tick)
+        }
+
+        window.requestAnimationFrame(tick)
+    }
+
+    return (
+        <motion.div
+            className="flex items-baseline gap-1.5"
+            onViewportEnter={handleViewportEnter}
+            viewport={{ once: true, amount: 0.6 }}
+        >
+            <span className="font-serif text-2xl font-black text-white tabular-nums md:text-3xl">{display}</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-white/45">{label}</span>
+        </motion.div>
+    )
+}
+
+// Fetched client-side, same pattern as GitHubActivity -- each visitor's own
+// browser hits GitHub's public Actions API directly for the real latest run,
+// falling back to a plain static pill if the call fails (rate limit, etc.).
+const CIStatus = () => {
+    const [run, setRun] = useState(null) // null = loading, false = unavailable, object = real run
+
+    useEffect(() => {
+        let cancelled = false
+
+        const load = async () => {
+            try {
+                const res = await fetch("https://api.github.com/repos/Aidilkiy/Aidil.dev/actions/workflows/playwright.yml/runs?per_page=1")
+                if (!res.ok) throw new Error("runs fetch failed")
+                const data = await res.json()
+                const latest = data.workflow_runs?.[0]
+                if (!latest) throw new Error("no runs found")
+                if (!cancelled) {
+                    setRun({ passed: latest.conclusion === "success", date: latest.updated_at, url: latest.html_url })
+                }
+            } catch {
+                if (!cancelled) setRun(false)
+            }
+        }
+
+        load()
+        return () => {
+            cancelled = true
+        }
+    }, [])
+
+    if (run === false) {
+        return (
+            <span className="rounded-full border border-emerald-300/30 bg-white/5 px-3 py-1 font-mono text-[11px] font-bold text-emerald-100">
+                CI on every push
+            </span>
+        )
+    }
+
+    if (!run) {
+        return (
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-[11px] font-bold text-white/40">
+                checking latest run...
+            </span>
+        )
+    }
+
+    return (
+        <a
+            href={run.url}
+            target="_blank"
+            rel="noreferrer"
+            className={`flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-[11px] font-bold transition-colors ${
+                run.passed
+                    ? "border-emerald-300/30 bg-white/5 text-emerald-100 hover:bg-emerald-300/10"
+                    : "border-rose-300/30 bg-white/5 text-rose-200 hover:bg-rose-300/10"
+            }`}
+        >
+            <motion.span
+                className={`h-1.5 w-1.5 rounded-full ${run.passed ? "bg-emerald-300" : "bg-rose-400"}`}
+                animate={{ opacity: [1, 0.4, 1] }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+            />
+            {run.passed ? "Passed" : "Failed"} &middot; {timeAgo(run.date)}
+        </a>
+    )
+}
 
 const FeaturePill = ({ children }) => (
     <span className="rounded-full bg-white/10 px-3 py-2 text-sm font-bold text-white/80 ring-1 ring-white/10">
@@ -748,14 +870,14 @@ const WorkPage = ({ embedded = false }) => {
 
                 <section className="mx-auto mt-8 w-full max-w-6xl px-4 sm:px-8 md:px-10 lg:px-14 2xl:px-14">
                     <motion.div
-                        className="relative overflow-hidden rounded-lg border border-emerald-300/20 bg-emerald-300/[0.03] p-5 text-white shadow-[0_18px_55px_rgba(16,185,129,0.06)] md:p-6"
+                        className="group relative overflow-hidden rounded-lg border border-emerald-300/20 bg-emerald-300/[0.03] p-5 text-white shadow-[0_18px_55px_rgba(16,185,129,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300/40 hover:shadow-[0_18px_55px_rgba(16,185,129,0.16)] md:p-6"
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, amount: 0.3 }}
                         transition={{ duration: 0.5, ease: "easeOut" }}
                     >
                         <div className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:linear-gradient(rgba(255,255,255,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:44px_44px]" />
-                        <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                             <div className="flex items-start gap-4">
                                 <motion.span
                                     className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-emerald-300 text-[#071A1F] ring-1 ring-white/10"
@@ -776,10 +898,36 @@ const WorkPage = ({ embedded = false }) => {
                                     <p className="mt-2 max-w-xl text-sm leading-6 text-white/60">
                                         13 automated Playwright end-to-end tests cover navigation, contact interactions, and mobile behaviour, running in a GitHub Actions CI pipeline against the production build on every push.
                                     </p>
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        <span className="rounded-full border border-emerald-300/30 bg-white/5 px-3 py-1 font-mono text-[11px] font-bold text-emerald-100">13 tests</span>
-                                        <span className="rounded-full border border-emerald-300/30 bg-white/5 px-3 py-1 font-mono text-[11px] font-bold text-emerald-100">4 suites</span>
-                                        <span className="rounded-full border border-emerald-300/30 bg-white/5 px-3 py-1 font-mono text-[11px] font-bold text-emerald-100">CI on every push</span>
+
+                                    <div className="mt-4 flex flex-wrap items-center gap-5">
+                                        <QualityStat value={13} label="Tests" />
+                                        <QualityStat value={4} label="Suites" />
+                                        <CIStatus />
+                                    </div>
+
+                                    <div className="mt-4 grid gap-1.5 sm:grid-cols-2">
+                                        {testSuites.map((suite, index) => (
+                                            <motion.div
+                                                className="flex items-center gap-2 font-mono text-xs"
+                                                initial={{ opacity: 0, x: -10 }}
+                                                whileInView={{ opacity: 1, x: 0 }}
+                                                viewport={{ once: true, amount: 0.6 }}
+                                                transition={{ delay: index * 0.1, duration: 0.35 }}
+                                                key={suite.name}
+                                            >
+                                                <motion.span
+                                                    className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-300/20 text-emerald-300"
+                                                    initial={{ scale: 0 }}
+                                                    whileInView={{ scale: 1 }}
+                                                    viewport={{ once: true, amount: 0.6 }}
+                                                    transition={{ delay: index * 0.1 + 0.15, duration: 0.25, ease: "backOut" }}
+                                                >
+                                                    <LuCheck className="h-3 w-3" aria-hidden="true" />
+                                                </motion.span>
+                                                <span className="text-white/75">{suite.name}</span>
+                                                <span className="text-white/35">&middot; {suite.count} tests</span>
+                                            </motion.div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
@@ -787,10 +935,10 @@ const WorkPage = ({ embedded = false }) => {
                                 href="https://github.com/Aidilkiy/Aidil.dev/actions"
                                 target="_blank"
                                 rel="noreferrer"
-                                className="group flex shrink-0 items-center justify-center gap-2 self-start rounded-full border border-emerald-300/30 bg-emerald-300/10 px-4 py-2.5 font-mono text-xs font-bold text-emerald-100 transition-all duration-300 hover:bg-emerald-300/20 md:self-center"
+                                className="group/link flex shrink-0 items-center justify-center gap-2 self-start rounded-full border border-emerald-300/30 bg-emerald-300/10 px-4 py-2.5 font-mono text-xs font-bold text-emerald-100 transition-all duration-300 hover:bg-emerald-300/20"
                             >
                                 View CI runs
-                                <LuArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                                <LuArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" aria-hidden="true" />
                             </a>
                         </div>
                     </motion.div>
