@@ -1,0 +1,60 @@
+# CI pipeline: runs the Playwright suite on every push and pull request to
+# main. If a change breaks a test, GitHub marks the commit/PR with a red X --
+# broken code can't sneak onto your live site unnoticed.
+#
+# QA lesson: this is what "integrating testing within CI/CD pipelines" means.
+# The suite you run locally with `npm test` runs automatically, on a clean
+# Linux machine, for every change -- no human has to remember to test.
+name: Playwright Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30 # safety net so a hung run can't burn CI minutes forever
+
+    steps:
+      # 1. Get the code onto the CI machine.
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # 2. Same Node major version you develop with; caches the npm download
+      #    folder between runs so installs are fast.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # 3. `npm ci` (not `npm install`): installs EXACTLY what
+      #    package-lock.json pins -- reproducible builds are a CI cornerstone.
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. The CI machine is blank, so Playwright's browser must be installed
+      #    too. --with-deps also pulls the Linux system libraries it needs.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # 5. Run the suite. CI=true is set automatically by GitHub Actions, so
+      #    playwright.config.js switches to the production build (next build +
+      #    next start) and enables the retry-once policy.
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      # 6. Keep the HTML report even when tests fail -- ESPECIALLY when they
+      #    fail. Download it from the run's "Artifacts" section on GitHub to
+      #    see screenshots and traces of what went wrong.
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
