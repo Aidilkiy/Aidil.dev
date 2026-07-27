@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion, useScroll } from "framer-motion"
-import { LuArrowUpRight, LuCode, LuGithub, LuSmartphone, LuTerminal } from "react-icons/lu"
+import { LuArrowUpRight, LuCode, LuGithub, LuShieldCheck, LuSmartphone, LuTerminal } from "react-icons/lu"
 import GitHubActivity from "@/components/githubActivity"
 
 const projects = [
@@ -744,6 +744,56 @@ const WorkPage = ({ embedded = false }) => {
                             </div>
                         </div>
                     </div>
+                </section>
+
+                <section className="mx-auto mt-8 w-full max-w-6xl px-4 sm:px-8 md:px-10 lg:px-14 2xl:px-14">
+                    <motion.div
+                        className="relative overflow-hidden rounded-lg border border-emerald-300/20 bg-emerald-300/[0.03] p-5 text-white shadow-[0_18px_55px_rgba(16,185,129,0.06)] md:p-6"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.3 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                    >
+                        <div className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:linear-gradient(rgba(255,255,255,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:44px_44px]" />
+                        <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                            <div className="flex items-start gap-4">
+                                <motion.span
+                                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-emerald-300 text-[#071A1F] ring-1 ring-white/10"
+                                    animate={{
+                                        boxShadow: [
+                                            "0 0 0 0 rgba(110,231,183,0)",
+                                            "0 0 0 8px rgba(110,231,183,0.16)",
+                                            "0 0 0 0 rgba(110,231,183,0)",
+                                        ],
+                                    }}
+                                    transition={{ duration: 2.6, repeat: Infinity, ease: "easeOut" }}
+                                >
+                                    <LuShieldCheck className="h-6 w-6" aria-hidden="true" />
+                                </motion.span>
+                                <div>
+                                    <p className="font-mono text-[10px] font-black uppercase tracking-[0.24em] text-emerald-300">Quality Engineering</p>
+                                    <h3 className="mt-2 text-lg font-black leading-tight md:text-xl">This portfolio ships with its own test suite.</h3>
+                                    <p className="mt-2 max-w-xl text-sm leading-6 text-white/60">
+                                        13 automated Playwright end-to-end tests cover navigation, contact interactions, and mobile behaviour, running in a GitHub Actions CI pipeline against the production build on every push.
+                                    </p>
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        <span className="rounded-full border border-emerald-300/30 bg-white/5 px-3 py-1 font-mono text-[11px] font-bold text-emerald-100">13 tests</span>
+                                        <span className="rounded-full border border-emerald-300/30 bg-white/5 px-3 py-1 font-mono text-[11px] font-bold text-emerald-100">4 suites</span>
+                                        <span className="rounded-full border border-emerald-300/30 bg-white/5 px-3 py-1 font-mono text-[11px] font-bold text-emerald-100">CI on every push</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <a
+                                href="https://github.com/Aidilkiy/Aidil.dev/actions"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="group flex shrink-0 items-center justify-center gap-2 self-start rounded-full border border-emerald-300/30 bg-emerald-300/10 px-4 py-2.5 font-mono text-xs font-bold text-emerald-100 transition-all duration-300 hover:bg-emerald-300/20 md:self-center"
+                            >
+                                View CI runs
+                                <LuArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                            </a>
+                        </div>
+                    </motion.div>
                 </section>
 
                 <section ref={detailRef} className="mx-auto mt-12 max-w-6xl scroll-mt-8 px-4 pb-12 sm:px-8 md:px-10 lg:px-14 2xl:px-14">
