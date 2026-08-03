@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { LuHeartHandshake, LuTrophy, LuUsers } from "react-icons/lu"
+import { LuHeartHandshake, LuPackage, LuTrophy, LuUsers } from "react-icons/lu"
 
 const leadershipRoles = [
     {
@@ -47,6 +47,22 @@ const leadershipRoles = [
         photos: [
             { src: "/leadership/rakan-muda-day-out-1.jpg", alt: "Rakan Muda Day Out 2.0 group photo at Pantai Morib" },
             { src: "/leadership/rakan-muda-day-out-2.jpg", alt: "Rakan Muda Day Out 2.0 beach clean-up activity" },
+        ],
+    },
+    {
+        role: "Volunteer, Milk Distribution Initiative",
+        organisation: "The Access Group (GOCKL) x Yayasan Chow Kit",
+        period: "30 Jul 2026 (1 day)",
+        category: "volunteering",
+        icon: LuPackage,
+        highlights: [
+            "Joined a company-organised giving-back day with colleagues from The Access Group GOCKL, supporting Yayasan Chow Kit's milk distribution initiative for underprivileged children and families in the Chow Kit community.",
+            "Helped sort and prepare milk packages for distribution alongside fellow volunteers, contributing hands-on support to a cause centred on child welfare.",
+        ],
+        tags: ["Corporate Volunteering", "Community Impact", "Team Collaboration"],
+        photos: [
+            { src: "/leadership/yayasan-chow-kit-group.jpeg", alt: "Volunteer group photo outside Yayasan Chow Kit" },
+            { src: "/leadership/yayasan-chow-kit-milk-packages.jpeg", alt: "Milk packages sorted for distribution at Yayasan Chow Kit" },
         ],
     },
 ]
@@ -147,14 +163,14 @@ const LeadershipSection = () => {
                                 />
                             </div>
 
-                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                            <div className="grid gap-4 md:grid-cols-2">
                                 {leadershipRoles.map((item, index) => {
                                     const RoleIcon = item.icon
                                     const theme = categoryTheme[item.category]
 
                                     return (
                                         <motion.article
-                                            className={`group relative overflow-hidden rounded-lg border p-4 text-white transition-all duration-500 md:p-5 md:[&:last-child]:col-span-2 xl:[&:last-child]:col-span-1 ${theme.cardBorder} ${theme.cardBg} ${theme.cardShadow}`}
+                                            className={`group relative overflow-hidden rounded-lg border p-4 text-white transition-all duration-500 md:p-5 ${theme.cardBorder} ${theme.cardBg} ${theme.cardShadow}`}
                                             initial={{ opacity: 0, y: 24 }}
                                             whileInView={{ opacity: 1, y: 0 }}
                                             viewport={{ once: true, amount: 0.3 }}
@@ -185,10 +201,12 @@ const LeadershipSection = () => {
                                                         </p>
                                                         <h3 className="mt-2 text-lg font-black leading-tight">{item.role}</h3>
                                                         <div className="mt-2 flex flex-wrap items-center gap-2">
-                                                            <span className="flex h-7 items-center rounded-md bg-white p-1 shadow-sm">
-                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                <img src={item.logo} alt={item.organisation} className="h-full w-auto object-contain" />
-                                                            </span>
+                                                            {item.logo ? (
+                                                                <span className="flex h-7 items-center rounded-md bg-white p-1 shadow-sm">
+                                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                    <img src={item.logo} alt={item.organisation} className="h-full w-auto object-contain" />
+                                                                </span>
+                                                            ) : null}
                                                             <p className={`text-sm font-bold ${theme.orgText}`}>{item.organisation}</p>
                                                         </div>
                                                         <p className="mt-1 font-mono text-xs font-bold uppercase tracking-[0.14em] text-white/42">{item.period}</p>
