@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
+import { DiMsqlServer } from "react-icons/di"
 import { FaAws } from "react-icons/fa"
 import {
     LuDatabase,
@@ -9,13 +10,16 @@ import {
     LuPanelsTopLeft,
     LuRocket,
     LuServerCog,
+    LuShieldCheck,
     LuSmartphone,
+    LuTheater,
 } from "react-icons/lu"
 import {
     SiAngular,
     SiCanva,
     SiDart,
     SiDocker,
+    SiDotnet,
     SiFigma,
     SiFirebase,
     SiFlutter,
@@ -28,8 +32,10 @@ import {
     SiOpenapiinitiative,
     SiOpenjdk,
     SiPhp,
+    SiPython,
     SiReact,
     SiRender,
+    SiSelenium,
     SiSharp,
     SiSqlite,
     SiTailwindcss,
@@ -44,6 +50,8 @@ const skills = [
     { name: "JavaScript", icon: SiJavascript, color: "#f7df1e", note: "Interactive frontend behavior and web app logic." },
     { name: "TypeScript", icon: SiTypescript, color: "#3178c6", note: "Safer React components and scalable code." },
     { name: "PHP", icon: SiPhp, color: "#777bb4", note: "Server-side web development and form handling." },
+    { name: "Python", icon: SiPython, color: "#ffd43b", note: "Scripting, automation, and general-purpose programming." },
+    { name: ".NET", icon: SiDotnet, color: "#7b5cf0", note: "C# backend development with .NET and ASP.NET Core." },
     { name: "Angular", icon: SiAngular, color: "#dd0031", note: "Structured frontend applications and components." },
     { name: "React", icon: SiReact, color: "#61dafb", note: "Component-based interfaces and portfolio UI." },
     { name: "Flutter", icon: SiFlutter, color: "#54c5f8", note: "Cross-platform mobile application development." },
@@ -58,8 +66,11 @@ const skills = [
     { name: "GitHub", icon: SiGithub, color: "#ffffff", note: "Hosting real projects, commit history, and open-source visibility." },
     { name: "Docker", icon: SiDocker, color: "#2496ed", note: "Containerizing apps for consistent, portable deployment." },
     { name: "Render", icon: SiRender, color: "#46e3b7", note: "Deploying and hosting live full-stack applications." },
+    { name: "Playwright", icon: LuTheater, color: "#45ba4b", note: "End-to-end browser tests that guard this portfolio in CI." },
+    { name: "Selenium", icon: SiSelenium, color: "#43b02a", note: "Browser automation for functional and regression testing." },
     { name: "Framer Motion", icon: SiFramer, color: "#d946ef", note: "Smooth interface transitions and interaction animation." },
     { name: "MySQL", icon: SiMysql, color: "#4479a1", note: "Relational data modelling, queries, and backend storage." },
+    { name: "MS SQL", icon: DiMsqlServer, color: "#cc2927", note: "Relational data and queries behind C# backend work." },
     { name: "Figma", icon: SiFigma, color: "#f24e1e", note: "Interface design, prototyping, and collaborative design systems." },
     { name: "Canva", icon: SiCanva, color: "#00c4cc", note: "Visual communication, presentation, and social media design." },
 ]
@@ -78,15 +89,23 @@ const skillGroups = [
         shortTitle: "Backend",
         icon: LuServerCog,
         summary: "Writing typed application logic and connecting interfaces to dependable services.",
-        items: ["Java", "C#", "PHP", "RESTful APIs"],
+        items: ["Java", "C#", ".NET", "Python", "PHP", "RESTful APIs"],
         color: "#fb7185",
+    },
+    {
+        title: "Testing & QA",
+        shortTitle: "QA",
+        icon: LuShieldCheck,
+        summary: "Writing automated end-to-end tests and catching regressions before they ship.",
+        items: ["Playwright", "Selenium"],
+        color: "#a3e635",
     },
     {
         title: "Databases & Cloud",
         shortTitle: "Data",
         icon: LuDatabase,
         summary: "Structuring data, cloud-backed features, authentication, and application storage.",
-        items: ["MySQL", "Firebase", "SQLite", "AWS"],
+        items: ["MySQL", "MS SQL", "Firebase", "SQLite", "AWS"],
         color: "#38bdf8",
     },
     {

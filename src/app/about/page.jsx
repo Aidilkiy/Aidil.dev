@@ -6,14 +6,15 @@ import {
     LuAward,
     LuBookOpen,
     LuBrainCircuit,
-    LuCloud,
     LuCode,
     LuGraduationCap,
     LuHammer,
     LuHeadphones,
+    LuLayers,
     LuLightbulb,
     LuPanelsTopLeft,
     LuQuote,
+    LuShieldCheck,
     LuTrendingUp,
     LuWorkflow,
 } from "react-icons/lu"
@@ -23,20 +24,22 @@ const experiences = [
     {
         role: "Technical Support Trainee Associate",
         programme: "K-Youth Programme",
-        period: "April 2026 - Present",
-        durationMonths: 4,
-        ongoing: true,
+        period: "June 2026 - August 2026",
+        durationMonths: 3,
+        ongoing: false,
         company: "The Access Group",
         icon: LuHeadphones,
-        current: true,
-        summary: "Supporting Australian customers while learning how strong communication, accurate case handling, and coordinated follow-up keep software services dependable.",
+        current: false,
+        status: "status: completed programme",
+        summary: "Supported Australian customers while learning how strong communication, accurate case handling, and coordinated follow-up keep software services dependable.",
         highlights: [
-            <>Assist <strong>Australian customers</strong> through inbound calls and voicemail callback services with professional, timely communication.</>,
-            <>Create and manage customer support cases in <strong>Intercom and Salesforce</strong>, maintaining accurate documentation of reported issues.</>,
-            <>Gather and verify customer information to support <strong>clear case logging and accurate assignment</strong> to the appropriate support teams.</>,
-            <>Collaborate with internal teams by routing and tracking cases to support <strong>timely follow-up and resolution</strong> of customer inquiries.</>,
+            <>Assisted <strong>Australian customers</strong> through inbound calls and voicemail callback services with professional, timely communication.</>,
+            <>Created and managed customer support cases in <strong>Intercom and Salesforce</strong>, maintaining accurate documentation of reported issues.</>,
+            <>Supported customers on the <strong>MicrOpay and WageEasy</strong> payroll systems, resolving product-related enquiries and troubleshooting issues by following established support procedures.</>,
+            <>Gathered and verified customer information to support <strong>clear case logging and accurate assignment</strong> to the appropriate support teams.</>,
+            <>Collaborated with internal teams by routing and tracking cases to support <strong>timely follow-up and resolution</strong> of customer inquiries.</>,
         ],
-        focus: ["Customer Support", "Intercom", "Salesforce", "Case Management"],
+        focus: ["Customer Support", "Intercom", "Salesforce", "MicrOpay & WageEasy", "Case Management"],
     },
     {
         role: "Analyst Programmer Intern",
@@ -47,14 +50,16 @@ const experiences = [
         company: "Al-Madinah International University",
         icon: LuCode,
         current: false,
+        status: "status: completed internship",
         summary: "Contributed to a real university system, translating stakeholder needs into responsive features and improving the reliability of an Agent Portal used for registration workflows.",
         highlights: [
             <>Developed and maintained an <strong>Agent Portal system</strong> supporting student registration and international recruitment processes.</>,
             <>Designed and implemented <strong>responsive user interface components</strong> to improve system usability and user experience.</>,
+            <>Contributed to <strong>backend development using C# and MS SQL</strong>, maintaining student data across existing and newly registered records.</>,
             <>Collaborated with stakeholders and team members to <strong>gather requirements, develop features, and validate functionality</strong>.</>,
             <>Conducted <strong>system testing, debugging, and issue resolution</strong> to improve reliability and performance before deployment.</>,
         ],
-        focus: ["Angular", "Responsive UI", "Git", "Testing & Debugging"],
+        focus: ["Angular", "C# & MS SQL", "Responsive UI", "Git", "Testing & Debugging"],
     },
 ]
 
@@ -79,35 +84,35 @@ const education = [
 
 const biographyInterests = [
     { label: "Software", detail: "Build", icon: LuPanelsTopLeft, color: "#e11d48" },
-    { label: "App Support", detail: "Understand", icon: LuHeadphones, color: "#2dd4bf" },
-    { label: "Cloud", detail: "Scale", icon: LuCloud, color: "#0284c7" },
-    { label: "DevOps", detail: "Deliver", icon: LuWorkflow, color: "#f59e0b" },
+    { label: "Full-Stack", detail: "Connect", icon: LuLayers, color: "#2dd4bf" },
+    { label: "Quality Assurance", detail: "Verify", icon: LuShieldCheck, color: "#0284c7" },
+    { label: "Cloud & DevOps", detail: "Deliver", icon: LuWorkflow, color: "#f59e0b" },
     { label: "AI & ML", detail: "Explore", icon: LuBrainCircuit, color: "#7c3aed" },
 ]
 
 const careerPathNodes = [
     { label: "Internship", sub: "Build", color: "bg-cyan-300", glow: "rgba(103,232,249,0.14)" },
-    { label: "Current role", sub: "Support", color: "bg-emerald-300", glow: "rgba(110,231,183,0.14)" },
+    { label: "Support role", sub: "Support", color: "bg-emerald-300", glow: "rgba(110,231,183,0.14)" },
     { label: "What's next", sub: "Grow", color: "bg-violet-300", glow: "rgba(196,181,253,0.14)" },
 ]
 
 const biographyCards = [
     {
         title: "What I build",
-        text: "Useful web and mobile experiences that turn requirements into clear, practical interfaces.",
-        tags: ["UI", "Web apps", "Mobile"],
+        text: "Full-stack web and mobile experiences that turn requirements into clear, practical interfaces.",
+        tags: ["Full-stack", "Web apps", "Mobile"],
         icon: LuHammer,
     },
     {
         title: "How I think",
-        text: "I like understanding the user problem first, then testing, improving, and keeping the solution reliable.",
-        tags: ["Problem solving", "Testing", "Support"],
+        text: "I like understanding the user problem first, then testing, improving, and keeping the solution reliable, from functional checks to automated end-to-end suites.",
+        tags: ["Problem solving", "Testing", "Reliability"],
         icon: LuLightbulb,
     },
     {
         title: "Where I am growing",
-        text: "I am focused on software engineering, application support, cloud engineering, DevOps, and exploring AI/ML.",
-        tags: ["Cloud", "DevOps", "AI / ML"],
+        text: "I am focused on software engineering, full-stack development, and quality assurance, while growing in cloud, DevOps, and AI/ML.",
+        tags: ["QA automation", "Cloud & DevOps", "AI / ML"],
         icon: LuTrendingUp,
     },
 ]
@@ -160,7 +165,7 @@ const BiographyInterestFlow = () => (
                 <p className="font-mono text-[10px] font-black uppercase tracking-[0.28em] text-rose-300">Direction of growth</p>
                 <h2 className="mt-2 text-xl font-black">One mindset, connected disciplines.</h2>
             </div>
-            <p className="text-sm font-semibold text-white/45">Build. Support. Scale. Explore.</p>
+            <p className="text-sm font-semibold text-white/45">Build. Connect. Verify. Deliver. Explore.</p>
         </div>
 
         <div className="relative">
@@ -254,7 +259,7 @@ const AboutPage = ({ embedded = false }) => {
                                         I like starting with the messy part of a problem: what users need, what the system is doing, and where the experience can become clearer.
                                     </p>
                                     <p className="mt-5 text-base leading-8 text-white/62">
-                                        Software engineering interests me because it turns unclear ideas into working products. I enjoy the space where development, support, cloud, and practical user needs meet, because that is where software has to be reliable, understandable, and useful.
+                                        Software engineering interests me because it turns unclear ideas into working products. I enjoy the space where development, testing, and practical user needs meet, because that is where software has to be reliable, understandable, and useful.
                                     </p>
                                 </div>
                             </motion.div>
@@ -473,7 +478,7 @@ const AboutPage = ({ embedded = false }) => {
                                                         </motion.span>
                                                         <div>
                                                             <p className="font-mono text-[10px] font-black uppercase tracking-[0.24em] text-white/38">
-                                                                {isCurrent ? "status: active role" : "status: completed internship"}
+                                                                {isCurrent ? "status: active role" : item.status}
                                                             </p>
                                                             <h3 className="mt-2 text-lg font-black leading-tight md:text-2xl">{item.role}</h3>
                                                             <p className={`mt-2 text-base font-bold ${isCurrent ? "text-emerald-200" : "text-cyan-200"}`}>{item.company}</p>

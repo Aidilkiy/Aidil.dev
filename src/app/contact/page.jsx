@@ -44,8 +44,8 @@ const toneGlow = {
 const getCopyValue = (item) => (item.href.startsWith("mailto:") ? item.value : item.href);
 
 const statusRows = [
-  { label: "role focus", value: "Software Engineering" },
-  { label: "location", value: "Petaling Jaya, Selangor" },
+  { label: "role focus", value: "Software Engineering & QA" },
+  { label: "location", value: "Jitra, Kedah" },
   { label: "relocation", value: "Open to relocate" },
   { label: "languages", value: "EN / MALAY" },
   { label: "availability", value: "Open to opportunities", online: true },
@@ -181,7 +181,7 @@ const ContactPage = () => {
               Let&apos;s build something <span className="italic text-cyan-300">useful.</span>
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-white/62 2xl:mt-6 2xl:text-lg 2xl:leading-8">
-              I&apos;m open to roles or projects where I can contribute through software development, application support, cloud, or DevOps work.
+              I&apos;m open to roles or projects where I can contribute through software development, full-stack engineering, quality assurance, or application engineering work.
             </p>
 
             <div className="mt-6 grid gap-5 2xl:mt-8">
