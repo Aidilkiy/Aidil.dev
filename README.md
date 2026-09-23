@@ -11,7 +11,7 @@ Live at: [aidildev.vercel.app](https://aidildev.vercel.app)
 - **Work** — case studies for three real projects:
   - **Agent Client Portal** — an Angular internship project for bilingual (English/Arabic) student applicant management
   - **MIITGuide** — a Flutter + Unity AR campus navigation final year project ([source](https://github.com/Aidilkiy/miitguide))
-  - **RepoChat** — a RAG-based AI tool that answers questions about any public GitHub repo's code ([source](https://github.com/Aidilkiy/repo-chat), [live demo](https://repo-chat-ydtv.onrender.com))
+  - **RepoChat** *(in progress)* — a RAG-based AI tool that answers questions about any public GitHub repo's code ([source](https://github.com/Aidilkiy/repo-chat); hosted demo temporarily offline)
 - **Certifications** — AWS and other certifications
 - **Contact** — direct links to email, GitHub, and LinkedIn
 

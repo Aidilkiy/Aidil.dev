@@ -43,6 +43,7 @@ const projects = [
         title: "RepoChat",
         type: "AI codebase Q&A tool",
         status: "Personal project",
+        inProgress: true,
         description:
             "A RAG-based tool that indexes any public GitHub repo and answers natural-language questions about the actual code, citing the exact files and lines it used instead of guessing.",
         stack: ["React", "TypeScript", "Node.js", "Gemini API", "SQLite"],
@@ -606,7 +607,17 @@ const ProjectShowcase = ({ project, index, isSelected, onOpen }) => {
                             <ProjectIcon className="h-5 w-5" aria-hidden="true" />
                         </span>
                     )}
-                    {isFeatured ? (
+                    {project.inProgress ? (
+                        <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-violet-300/40 bg-violet-300/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-violet-200">
+                            <motion.span
+                                className="h-1.5 w-1.5 rounded-full bg-violet-300"
+                                animate={{ opacity: [1, 0.35, 1] }}
+                                transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                                aria-hidden="true"
+                            />
+                            In progress
+                        </span>
+                    ) : isFeatured ? (
                         <span className="shrink-0 rounded-full border border-amber-300/35 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.12)]">
                             Featured
                         </span>
@@ -1236,7 +1247,7 @@ const WorkPage = ({ embedded = false }) => {
                                 <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:48px_48px]" />
                                 <div className="relative grid gap-8 lg:grid-cols-[0.62fr_0.38fr] lg:items-end">
                                     <div>
-                                        <p className="font-mono text-xs font-bold uppercase tracking-[0.32em] text-violet-300">Personal Project / Project Opened</p>
+                                        <p className="font-mono text-xs font-bold uppercase tracking-[0.32em] text-violet-300">Personal Project / In Progress</p>
                                         <h2 className="mt-4 font-serif text-4xl leading-tight md:text-6xl">RepoChat</h2>
                                         <p className="mt-3 max-w-3xl text-xl font-bold text-white/90 md:text-2xl">
                                             Ask questions about any GitHub repo, answered from the real code
@@ -1259,15 +1270,24 @@ const WorkPage = ({ embedded = false }) => {
                                             <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-white/45">Type</p>
                                             <p className="mt-2 text-xl font-black">Personal / Open Source</p>
                                         </div>
-                                        <a
-                                            href="https://repo-chat-ydtv.onrender.com"
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="col-span-2 flex items-center justify-center gap-2 rounded-full bg-violet-300 px-4 py-3 text-sm font-bold text-[#0f0524] transition-all hover:-translate-y-0.5 hover:bg-violet-200"
+                                        {/* Hosted demo is offline (its GitHub token needs renewing). To restore the
+                                            link, swap this block back to an <a> pointing at
+                                            https://repo-chat-ydtv.onrender.com once it works again. */}
+                                        <div
+                                            className="col-span-2 flex items-center justify-center gap-2 rounded-full border border-violet-300/30 bg-violet-300/10 px-4 py-3 text-sm font-bold text-violet-200"
+                                            role="status"
                                         >
-                                            <LuArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                                            Try the live demo
-                                        </a>
+                                            <motion.span
+                                                className="h-2 w-2 rounded-full bg-violet-300"
+                                                animate={{ opacity: [1, 0.35, 1] }}
+                                                transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                                                aria-hidden="true"
+                                            />
+                                            Live demo temporarily offline
+                                        </div>
+                                        <p className="col-span-2 -mt-1 px-1 text-xs leading-5 text-white/45">
+                                            This project is still in progress. The recording below shows the tool working end to end.
+                                        </p>
                                         <a
                                             href="https://github.com/Aidilkiy/repo-chat"
                                             target="_blank"
@@ -1428,7 +1448,7 @@ const WorkPage = ({ embedded = false }) => {
                                 </div>
 
                                 <p className="mt-6 border-t border-white/10 pt-5 text-sm leading-7 text-white/55">
-                                    Verified locally end-to-end before the revert: indexing a real repo through the split services returned the exact same file/chunk counts as the monolith, and a real question got a correct, cited answer through the new architecture — the split worked functionally, the revert was purely about production hosting reliability. RepoChat runs as the single-service version in production today.
+                                    Verified locally end-to-end before the revert: indexing a real repo through the split services returned the exact same file/chunk counts as the monolith, and a real question got a correct, cited answer through the new architecture — the split worked functionally, the revert was purely about production hosting reliability. RepoChat continues as the single-service version.
                                 </p>
                             </section>
                         </motion.div>
